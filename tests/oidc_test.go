@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"ecommerce-app/internal/auth"
+	"commerce-app/internal/auth"
 
 	"github.com/google/uuid"
 )

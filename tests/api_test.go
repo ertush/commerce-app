@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"ecommerce-app/internal/models"
+	"commerce-app/internal/models"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"

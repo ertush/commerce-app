@@ -3,8 +3,8 @@ package tests
 import (
 	"testing"
 
-	"ecommerce-app/internal/database"
-	"ecommerce-app/internal/models"
+	"commerce-app/internal/database"
+	"commerce-app/internal/models"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"

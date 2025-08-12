@@ -9,9 +9,9 @@ import (
 	"os"
 	"testing"
 
-	"ecommerce-app/api/rest"
-	"ecommerce-app/internal/database"
-	"ecommerce-app/internal/models"
+	"commerce-app/api/rest"
+	"commerce-app/internal/database"
+	"commerce-app/internal/models"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
