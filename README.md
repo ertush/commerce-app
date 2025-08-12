@@ -68,7 +68,7 @@ The application supports two authentication methods:
 
 ```bash
 git clone <repository-url>
-cd ecommerce-app
+cd commerce-app
 ```
 
 ### 2. Set Up Environment Variables
