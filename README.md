@@ -31,10 +31,10 @@ A modern e-commerce application built with Go, featuring a REST API, PostgreSQL 
          │
          ▼
 ┌─────────────────┐
-│   OIDC         │
-│   Providers    │
-│   (Google,     │
-│   Azure, etc.) │
+│   OIDC          │
+│   Providers     │
+│   (Google,      │
+│   Azure, etc.)  │
 └─────────────────┘
 ```
 
