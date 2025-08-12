@@ -1,28 +1,100 @@
-# Database Configuration
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=password
-DB_NAME=ecommerce
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
 
-# JWT Configuration
-JWT_SECRET=your-secret-key
-JWT_EXPIRATION_TIME=24h
+# Test binary, built with `go test -c`
+*.test
 
-# OIDC Configuration
-OIDC_PROVIDER_URL=https://accounts.google.com
-OIDC_CLIENT_ID=your-oidc-client-id
-OIDC_CLIENT_SECRET=your-oidc-client-secret
-OIDC_REDIRECT_URL=http://localhost:8181/api/auth/callback
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
 
-# SMS Configuration (Africa's Talking)
-AFRICASTALKING_API_KEY=your_api_key
-AFRICASTALKING_USERNAME=your_username
-AFRICASTALKING_BASE_URL=https://api.sandbox.africastalking.com
+# Dependency directories (remove the comment below to include it)
+# vendor/
 
-# Email Configuration
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USERNAME=your_email@gmail.com
-SMTP_PASSWORD=your_app_password
-ADMIN_EMAIL=admin@ecommerce.com
+# Go workspace file
+go.work
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# Dependency directories
+node_modules/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env.test
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# next.js build output
+.next
+
+# nuxt.js build output
+.nuxt
+
+# vuepress build output
+.vuepress/dist
+
+# Serverless directories
+.serverless
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local files
+.dynamodb/
+
+# TernJS port file
+.tern-port
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
+# Temporary folders
+tmp/
+temp/
