@@ -1,4 +1,4 @@
-# E-commerce API Postman Collection
+# Commerce API Postman Collection
 
 This Postman collection contains all the API endpoints for the e-commerce application, including OpenID Connect (OIDC) authentication.
 
