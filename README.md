@@ -1,4 +1,4 @@
-# Commerce Application
+# Commerce Web Service
 
 A modern e-commerce application built with Go, featuring a REST API, PostgreSQL database, Kubernetes deployment, and OpenID Connect authentication.
 
