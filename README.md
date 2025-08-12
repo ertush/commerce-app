@@ -73,38 +73,7 @@ cd ecommerce-app
 
 ### 2. Set Up Environment Variables
 
-Create a `.env` file in the root directory:
-
-```env
-# Database Configuration
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=password
-DB_NAME=ecommerce
-
-# JWT Configuration
-JWT_SECRET=your-secret-key
-JWT_EXPIRATION_TIME=24h
-
-# OIDC Configuration
-OIDC_PROVIDER_URL=https://accounts.google.com
-OIDC_CLIENT_ID=your-oidc-client-id
-OIDC_CLIENT_SECRET=your-oidc-client-secret
-OIDC_REDIRECT_URL=http://localhost:8181/api/auth/callback
-
-# SMS Configuration (Africa's Talking)
-AFRICASTALKING_API_KEY=your_api_key
-AFRICASTALKING_USERNAME=your_username
-AFRICASTALKING_BASE_URL=https://api.sandbox.africastalking.com
-
-# Email Configuration
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USERNAME=your_email@gmail.com
-SMTP_PASSWORD=your_app_password
-ADMIN_EMAIL=admin@ecommerce.com
-```
+Create a `.env` file in the root directory (refer to `.env.example`)
 
 ### 3. Configure OIDC Provider
 
