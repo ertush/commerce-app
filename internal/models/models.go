@@ -68,13 +68,13 @@ type Order struct {
 }
 
 type OrderResponse struct {
-	ID         uuid.UUID   `json:"id" db:"id"`
-	CustomerID uuid.UUID   `json:"customer_id" db:"customer_id"`
-	Status     string      `json:"status" db:"status"`
-	Total      float64     `json:"total" db:"total"`
-	CreatedAt  time.Time   `json:"created_at" db:"created_at"`
-	UpdatedAt  time.Time   `json:"updated_at" db:"updated_at"`
-	Items      []OrderItem `json:"items,omitempty"`
+	ID         uuid.UUID           `json:"id" db:"id"`
+	CustomerID uuid.UUID           `json:"customer_id" db:"customer_id"`
+	Status     string              `json:"status" db:"status"`
+	Total      float64             `json:"total" db:"total"`
+	CreatedAt  time.Time           `json:"created_at" db:"created_at"`
+	UpdatedAt  time.Time           `json:"updated_at" db:"updated_at"`
+	Items      []OrderItemResponse `json:"items"`
 }
 
 // OrderItem represents an item in an order
@@ -84,7 +84,16 @@ type OrderItem struct {
 	ProductID uuid.UUID `json:"product_id" db:"product_id"`
 	Quantity  int       `json:"quantity" db:"quantity"`
 	Price     float64   `json:"price" db:"price"`
-	Product   Product   `json:"product,omitempty"`
+	Product   Product   `json:"product"`
+}
+
+type OrderItemResponse struct {
+	ID        uuid.UUID       `json:"id" db:"id"`
+	OrderID   uuid.UUID       `json:"order_id" db:"order_id"`
+	ProductID uuid.UUID       `json:"product_id" db:"product_id"`
+	Quantity  int             `json:"quantity" db:"quantity"`
+	Price     float64         `json:"price" db:"price"`
+	Product   ProductResponse `json:"product"`
 }
 
 // CategoryPrice represents average price for a category
