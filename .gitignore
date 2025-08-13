@@ -98,4 +98,10 @@ node_modules/
 # Temporary folders
 tmp/
 temp/
+
+# Docs and todo list
 docs/IMPLEMENTATION_PLAN.md
+
+# scripts
+run.sh
+dev.sh
