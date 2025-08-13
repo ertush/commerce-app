@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"commerce-app/internal/database"
 	"commerce-app/internal/models"
@@ -86,7 +88,7 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		}
 		order.Items = append(order.Items, orderItem)
 
-		itemDetails = append(itemDetails, fmt.Sprintf("- %s x%d @ $%.2f = $%.2f",
+		itemDetails = append(itemDetails, fmt.Sprintf("- %s x%d @ Ksh%.2f = Ksh%.2f",
 			product.Name, item.Quantity, product.Price, itemTotal))
 	}
 
@@ -96,22 +98,41 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	msgOrderID := order.ID.String()[0:8] + "..." + order.ID.String()[len(order.ID.String())-4:]
+
 	// Send SMS notification to customer
 	go func() {
-		if err := h.smsService.SendOrderNotification(
-			customer.Phone,
-			order.ID.String(),
+		// "New Order Placed has been received.Order ID: #%s,\ncustomer name: %s,\nphone: %s,\nemail: %s,\ntotal: $%.2f,\nproduct: %s,\nqty: x%d",
+
+		message := fmt.Sprintf(`
+								New order has been Received!
+
+								Order Details:
+								- Order ID: %s
+								- Name: %s
+								- Phone: %s
+								- Total Amount: Ksh%.2f
+
+								Order Items:
+								%s
+								`,
+			msgOrderID,
 			customer.Name,
+			customer.Phone,
 			order.Total,
-		); err != nil {
+			strings.Join(itemDetails, "\n"))
+
+		err := h.smsService.SendOrderNotification(message)
+		if err != nil {
 			fmt.Printf("Failed to send SMS notification: %v\n", err)
 		}
+
 	}()
 
 	// Send email notification to admin
 	go func() {
 		if err := h.emailService.SendOrderNotificationToAdmin(
-			order.ID.String(),
+			msgOrderID,
 			customer.Name,
 			customer.Email,
 			customer.Phone,
@@ -122,9 +143,25 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
+	orderTotal, err := strconv.ParseFloat(fmt.Sprintf("%.2f", order.Total), 64)
+	if err != nil {
+		fmt.Println("Error converting string to float64:", err)
+		return
+	}
+
+	response := &models.OrderResponse{
+		ID:         order.ID,
+		CustomerID: order.CustomerID,
+		Status:     order.Status,
+		Total:      orderTotal,
+		CreatedAt:  order.CreatedAt,
+		UpdatedAt:  order.UpdatedAt,
+		Items:      order.Items,
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(order)
+	json.NewEncoder(w).Encode(response)
 }
 
 // GetOrder gets an order by ID

@@ -36,6 +36,14 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// response := struct {
+	// 	models.Product
+	// 	Category *models.Category `json:"category,omitempty"`
+	// }{
+	// 	Product:  product,
+	// 	Category: nil, // Don't include category in create response
+	// }
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(product)
