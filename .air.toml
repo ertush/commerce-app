@@ -1,5 +1,5 @@
 root = "."
-testdata_dir = "testdata"
+testdata_dir = ""
 tmp_dir = "tmp"
 
 [build]
@@ -7,10 +7,10 @@ args_bin = []
 bin = "./tmp/main"
 cmd = "go build -o ./tmp/main ./cmd/server"
 delay = 1000
-exclude_dir = ["assets", "tmp", "vendor", "testdata", "deployments", ".github"]
+exclude_dir = ["assets", "tmp", "vendor", "tests", "deployments", ".github"]
 exclude_file = []
-exclude_regex = ["_test.go"]
-exclude_unchanged = false
+exclude_regex = ["_tests\\.go"]
+exclude_unchanged = true
 follow_symlink = false
 full_bin = ""
 include_dir = []
@@ -34,6 +34,7 @@ watcher = "cyan"
 
 [log]
 main_only = false
+silent = false
 time = false
 
 [misc]
