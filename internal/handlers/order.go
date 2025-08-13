@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -54,6 +55,16 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Customer not found", http.StatusNotFound)
 		return
 	}
+
+	product, err := h.productRepo.GetByID(orderRequest.Items[0].ProductID)
+	if err != nil {
+		http.Error(w, "Product not found", http.StatusNotFound)
+		return
+	}
+
+	h.productRepo.UpdateStock(&models.Product{
+		Stock: product.Stock - orderRequest.Items[0].Quantity,
+	})
 
 	// Create order
 	order := &models.Order{
@@ -156,7 +167,24 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		Total:      orderTotal,
 		CreatedAt:  order.CreatedAt,
 		UpdatedAt:  order.UpdatedAt,
-		Items:      order.Items,
+		Items: []models.OrderItemResponse{
+			{
+				ID:        order.Items[0].ID,
+				OrderID:   order.Items[0].OrderID,
+				ProductID: order.Items[0].ProductID,
+				Quantity:  order.Items[0].Quantity,
+				Price:     order.Items[0].Price,
+				Product: models.ProductResponse{
+					ID:          order.Items[0].Product.ID,
+					Name:        order.Items[0].Product.Name,
+					Description: order.Items[0].Product.Description,
+					Price:       order.Items[0].Product.Price,
+					CategoryID:  order.Items[0].Product.CategoryID,
+					Stock:       order.Items[0].Product.Stock,
+					ImageURL:    order.Items[0].Product.ImageURL,
+				},
+			},
+		},
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -222,29 +250,57 @@ func (h *OrderHandler) UpdateOrderStatus(w http.ResponseWriter, r *http.Request)
 
 	// Validate status
 	validStatuses := []string{"pending", "processing", "shipped", "delivered", "cancelled"}
-	isValid := false
-	for _, status := range validStatuses {
-		if status == statusUpdate.Status {
-			isValid = true
-			break
-		}
-	}
+	isValid := slices.Contains(validStatuses, statusUpdate.Status)
 
 	if !isValid {
 		http.Error(w, "Invalid status", http.StatusBadRequest)
 		return
 	}
 
-	// Update order status (this would need to be implemented in the repository)
-	// For now, we'll just return the order
 	order, err := h.orderRepo.GetByID(id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	// Update order status in productRepo
+	h.orderRepo.UpdateStatus(&models.Order{
+		ID:     id,
+		Status: statusUpdate.Status,
+	})
+
 	order.Status = statusUpdate.Status
 
+	responseOrder := models.OrderResponse{
+		ID:         order.ID,
+		CustomerID: order.CustomerID,
+		Status:     statusUpdate.Status,
+		Total:      order.Total,
+		CreatedAt:  order.CreatedAt,
+		UpdatedAt:  order.UpdatedAt,
+		Items: []models.OrderItemResponse{
+			{
+				ID:        order.Items[0].ID,
+				OrderID:   order.ID,
+				ProductID: order.Items[0].ProductID,
+				Quantity:  order.Items[0].Quantity,
+				Price:     order.Items[0].Price,
+				Product: models.ProductResponse{
+					ID:          order.Items[0].ProductID,
+					Name:        order.Items[0].Product.Name,
+					Description: order.Items[0].Product.Description,
+					Price:       order.Items[0].Product.Price,
+					CategoryID:  order.Items[0].Product.CategoryID,
+					Stock:       order.Items[0].Product.Stock,
+					ImageURL:    order.Items[0].Product.ImageURL,
+					CreatedAt:   order.Items[0].Product.CreatedAt,
+					UpdatedAt:   order.Items[0].Product.UpdatedAt,
+				},
+			},
+		},
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(order)
+	json.NewEncoder(w).Encode(responseOrder)
+
 }
