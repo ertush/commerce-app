@@ -173,7 +173,7 @@ func (p *OIDCProvider) VerifyIDToken(ctx context.Context, idToken string) (*OIDC
 
 	var claims OIDCClaims
 	if err := token.Claims(&claims); err != nil {
-		log.Printf("\n\n[+] Claims: %v \n\n", claims)
+		// log.Printf("\n\n[+] Claims: %v \n\n", claims)
 		return nil, fmt.Errorf("failed to parse token claims: %w", err)
 	}
 
