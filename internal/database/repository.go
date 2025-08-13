@@ -172,6 +172,16 @@ func (r *ProductRepository) GetByID(id uuid.UUID) (*models.Product, error) {
 	return product, nil
 }
 
+func (r *ProductRepository) UpdateStock(product *models.Product) error {
+	query := `UPDATE products SET stock = $1, updated_at = $2 WHERE id = $3`
+
+	_, err := DB.Exec(query, product.Stock, time.Now(), product.ID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (r *ProductRepository) GetAll() ([]models.Product, error) {
 	query := `SELECT p.id, p.name, p.description, p.price, p.category_id, p.stock, p.image_url,
 			  p.created_at, p.updated_at, c.id, c.name, c.description, c.parent_id, c.level, c.path,
@@ -292,6 +302,17 @@ func (r *OrderRepository) Create(order *models.Order) error {
 	return tx.Commit()
 }
 
+func (r *OrderRepository) UpdateStatus(order *models.Order) error {
+	query := `UPDATE orders SET status = $1, updated_at = $2 WHERE id = $3`
+
+	_, err := DB.Exec(query, order.Status, time.Now(), order.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *OrderRepository) GetByID(id uuid.UUID) (*models.Order, error) {
 	order := &models.Order{}
 	query := `SELECT o.id, o.customer_id, o.status, o.total, o.created_at, o.updated_at,
@@ -336,7 +357,7 @@ func (r *OrderRepository) GetByID(id uuid.UUID) (*models.Order, error) {
 	return order, nil
 }
 
-func (r *OrderRepository) GetByCustomer(customerID uuid.UUID) ([]models.Order, error) {
+func (r *OrderRepository) GetByCustomer(customerID uuid.UUID) ([]models.OrderResponse, error) {
 	query := `SELECT o.id, o.customer_id, o.status, o.total, o.created_at, o.updated_at
 			  FROM orders o
 			  WHERE o.customer_id = $1
@@ -348,9 +369,9 @@ func (r *OrderRepository) GetByCustomer(customerID uuid.UUID) ([]models.Order, e
 	}
 	defer rows.Close()
 
-	var orders []models.Order
+	var orders []models.OrderResponse
 	for rows.Next() {
-		var order models.Order
+		var order models.OrderResponse
 		err := rows.Scan(&order.ID, &order.CustomerID, &order.Status, &order.Total,
 			&order.CreatedAt, &order.UpdatedAt)
 		if err != nil {
