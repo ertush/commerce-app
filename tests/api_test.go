@@ -2,7 +2,10 @@ package tests
 
 import (
 	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"testing"
 
 	"commerce-app/internal/models"
@@ -18,27 +21,20 @@ func TestCustomerRoutes(t *testing.T) {
 
 	t.Run("CreateCustomer", func(t *testing.T) {
 		customerData := map[string]interface{}{
-			"email": "john@example.com",
-			"name":  "John Doe",
-			"phone": "1234567890",
+			"email": "test@customer.com",
+			"name":  "Test Customer",
+			"phone": "12345677729",
 		}
 
-		resp := MakeRequest(t, ts, "POST", "/api/customers", customerData, nil)
-		defer resp.Body.Close()
+		customer, token := CreateTestCustomer(t, ts, customerData)
 
-		assert.Equal(t, http.StatusCreated, resp.StatusCode)
+		assert.NotNil(t, customer)
+		assert.NotEmpty(t, token)
 
-		var response map[string]interface{}
-		err := json.NewDecoder(resp.Body).Decode(&response)
-		assert.NoError(t, err)
+		assert.Equal(t, customerData["email"], customer.Email)
+		assert.Equal(t, customerData["name"], customer.Name)
+		assert.Equal(t, customerData["phone"], customer.Phone)
 
-		assert.Contains(t, response, "customer")
-		assert.Contains(t, response, "token")
-
-		customer := response["customer"].(map[string]interface{})
-		assert.Equal(t, "john@example.com", customer["email"])
-		assert.Equal(t, "John Doe", customer["name"])
-		assert.Equal(t, "1234567890", customer["phone"])
 	})
 
 	t.Run("CreateCustomerInvalidData", func(t *testing.T) {
@@ -55,8 +51,15 @@ func TestCustomerRoutes(t *testing.T) {
 	})
 
 	t.Run("LoginCustomer", func(t *testing.T) {
+
+		customerData := map[string]interface{}{
+			"email": "testuser@customer.com",
+			"name":  "Test User Customer",
+			"phone": "12345673923",
+		}
+
 		// First create a customer
-		customer, _ := CreateTestCustomer(t, ts)
+		customer, _ := CreateTestCustomer(t, ts, customerData)
 
 		loginData := map[string]interface{}{
 			"email": customer.Email,
@@ -87,9 +90,19 @@ func TestCustomerRoutes(t *testing.T) {
 	})
 
 	t.Run("GetCustomer", func(t *testing.T) {
-		customer, _ := CreateTestCustomer(t, ts)
+		customerData := map[string]interface{}{
+			"email": "test@jambo.com",
+			"name":  "Test User Jambo",
+			"phone": "12345678820",
+		}
 
-		resp := MakeRequest(t, ts, "GET", "/api/customers/"+customer.ID.String(), nil, nil)
+		customer, token := CreateTestCustomer(t, ts, customerData)
+
+		headers := map[string]string{
+			"Authorization": fmt.Sprintf("Bearer %s", token),
+		}
+
+		resp := MakeRequest(t, ts, "GET", "/api/customers/"+customer.ID.String(), nil, headers)
 		defer resp.Body.Close()
 
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -106,7 +119,11 @@ func TestCustomerRoutes(t *testing.T) {
 
 	t.Run("GetCustomerNotFound", func(t *testing.T) {
 		randomID := uuid.New()
-		resp := MakeRequest(t, ts, "GET", "/api/customers/"+randomID.String(), nil, nil)
+
+		headers := map[string]string{
+			"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("TEST_ACCESS_TOKEN")),
+		}
+		resp := MakeRequest(t, ts, "GET", "/api/customers/"+randomID.String(), nil, headers)
 		defer resp.Body.Close()
 
 		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
@@ -322,7 +339,12 @@ func TestOrderRoutes(t *testing.T) {
 	defer ts.CleanupTestServer(t)
 
 	t.Run("CreateOrder", func(t *testing.T) {
-		customer, _ := CreateTestCustomer(t, ts)
+		customerData := map[string]interface{}{
+			"email": "test@order_customer.com",
+			"name":  "Test User Order",
+			"phone": "12345423290",
+		}
+		customer, _ := CreateTestCustomer(t, ts, customerData)
 		category := CreateTestCategory(t, ts, nil)
 		product := CreateTestProduct(t, ts, category.ID)
 
@@ -335,6 +357,8 @@ func TestOrderRoutes(t *testing.T) {
 				},
 			},
 		}
+
+		log.Println("[+] orderData:", orderData)
 
 		resp := MakeRequest(t, ts, "POST", "/api/orders", orderData, nil)
 		defer resp.Body.Close()
@@ -372,7 +396,12 @@ func TestOrderRoutes(t *testing.T) {
 	})
 
 	t.Run("CreateOrderInvalidProduct", func(t *testing.T) {
-		customer, _ := CreateTestCustomer(t, ts)
+		customerData := map[string]interface{}{
+			"email": "test@productInvalid.com",
+			"name":  "Test Customer",
+			"phone": "82093203",
+		}
+		customer, _ := CreateTestCustomer(t, ts, customerData)
 
 		orderData := map[string]interface{}{
 			"customer_id": customer.ID.String(),
@@ -384,6 +413,7 @@ func TestOrderRoutes(t *testing.T) {
 			},
 		}
 
+		log.Println("[+] orderData:", orderData)
 		resp := MakeRequest(t, ts, "POST", "/api/orders", orderData, nil)
 		defer resp.Body.Close()
 
@@ -391,7 +421,13 @@ func TestOrderRoutes(t *testing.T) {
 	})
 
 	t.Run("GetOrder", func(t *testing.T) {
-		customer, _ := CreateTestCustomer(t, ts)
+
+		customerData := map[string]interface{}{
+			"email": "test@orderuser.com",
+			"name":  "Test User",
+			"phone": "1234567890",
+		}
+		customer, _ := CreateTestCustomer(t, ts, customerData)
 		category := CreateTestCategory(t, ts, nil)
 		product := CreateTestProduct(t, ts, category.ID)
 		order := CreateTestOrder(t, ts, customer.ID, product.ID)
@@ -412,12 +448,25 @@ func TestOrderRoutes(t *testing.T) {
 	})
 
 	t.Run("GetOrdersByCustomer", func(t *testing.T) {
-		customer, _ := CreateTestCustomer(t, ts)
+
+		customerData := map[string]interface{}{
+			"email": "test@customerOrders.com",
+			"name":  "Test User",
+			"phone": "1234567890",
+		}
+		log.Println("[+]Created order", customerData)
+
+		customer, _ := CreateTestCustomer(t, ts, customerData)
+
 		category := CreateTestCategory(t, ts, nil)
 		product := CreateTestProduct(t, ts, category.ID)
 		CreateTestOrder(t, ts, customer.ID, product.ID)
 
-		resp := MakeRequest(t, ts, "GET", "/api/customers/"+customer.ID.String()+"/orders", nil, nil)
+		headers := map[string]string{
+			"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("TEST_ACCESS_TOKEN")),
+		}
+
+		resp := MakeRequest(t, ts, "GET", "/api/customers/"+customer.ID.String()+"/orders", nil, headers)
 		defer resp.Body.Close()
 
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -433,7 +482,12 @@ func TestOrderRoutes(t *testing.T) {
 	})
 
 	t.Run("UpdateOrderStatus", func(t *testing.T) {
-		customer, _ := CreateTestCustomer(t, ts)
+		customerData := map[string]interface{}{
+			"email":    "test@example.com",
+			"password": "password",
+		}
+
+		customer, _ := CreateTestCustomer(t, ts, customerData)
 		category := CreateTestCategory(t, ts, nil)
 		product := CreateTestProduct(t, ts, category.ID)
 		order := CreateTestOrder(t, ts, customer.ID, product.ID)
@@ -455,7 +509,12 @@ func TestOrderRoutes(t *testing.T) {
 	})
 
 	t.Run("UpdateOrderStatusInvalid", func(t *testing.T) {
-		customer, _ := CreateTestCustomer(t, ts)
+		customerData := map[string]interface{}{
+			"email":    "customer@example.com",
+			"password": "password",
+		}
+
+		customer, _ := CreateTestCustomer(t, ts, customerData)
 		category := CreateTestCategory(t, ts, nil)
 		product := CreateTestProduct(t, ts, category.ID)
 		order := CreateTestOrder(t, ts, customer.ID, product.ID)

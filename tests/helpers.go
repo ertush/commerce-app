@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -14,6 +16,7 @@ import (
 	"commerce-app/internal/models"
 
 	"github.com/google/uuid"
+	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,11 +29,15 @@ type TestServer struct {
 // SetupTestServer creates a test server with a clean database
 func SetupTestServer(t *testing.T) *TestServer {
 	// Set test environment variables
-	os.Setenv("DB_HOST", "localhost")
-	os.Setenv("DB_PORT", "5432")
-	os.Setenv("DB_USER", "postgres")
-	os.Setenv("DB_PASSWORD", "password")
-	os.Setenv("DB_NAME", "ecommerce_test")
+	if err := godotenv.Load(".env.test"); err != nil {
+		log.Println("No .env file found")
+	}
+
+	os.Setenv("DB_HOST", os.Getenv("DB_HOST"))
+	os.Setenv("DB_PORT", os.Getenv("DB_PORT"))
+	os.Setenv("DB_USER", os.Getenv("DB_USER"))
+	os.Setenv("DB_PASSWORD", os.Getenv("DB_PASSWORD"))
+	os.Setenv("DB_NAME", os.Getenv("DB_NAME"))
 
 	// Initialize database
 	err := database.InitDB()
@@ -63,17 +70,17 @@ func (ts *TestServer) CleanupTestServer(t *testing.T) {
 }
 
 // CreateTestCustomer creates a test customer and returns the customer data
-func CreateTestCustomer(t *testing.T, ts *TestServer) (*models.Customer, string) {
-	customerData := map[string]interface{}{
-		"email": "test@example.com",
-		"name":  "Test User",
-		"phone": "1234567890",
-	}
+func CreateTestCustomer(t *testing.T, ts *TestServer, customerData map[string]interface{}) (*models.Customer, string) {
 
 	jsonData, _ := json.Marshal(customerData)
 	req, _ := http.NewRequest("POST", ts.Server.URL+"/api/customers", bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
 
+	if err := godotenv.Load(".env.test"); err != nil {
+		log.Println("No .env file found")
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", os.Getenv("TEST_ACCESS_TOKEN")))
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	assert.NoError(t, err)
@@ -188,6 +195,8 @@ func MakeRequest(t *testing.T, ts *TestServer, method, path string, body interfa
 	var jsonData []byte
 	var err error
 
+	// log.Println("[+]Making request:", method, path, headers)
+
 	if body != nil {
 		jsonData, err = json.Marshal(body)
 		assert.NoError(t, err)
@@ -197,11 +206,15 @@ func MakeRequest(t *testing.T, ts *TestServer, method, path string, body interfa
 	assert.NoError(t, err)
 
 	req.Header.Set("Content-Type", "application/json")
+
 	for key, value := range headers {
 		req.Header.Set(key, value)
 	}
 
 	client := &http.Client{}
+
+	log.Printf("\n\n[+] Request headers: %v\n\n", req.Header)
+
 	resp, err := client.Do(req)
 	assert.NoError(t, err)
 
