@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -61,6 +62,7 @@ func SetupTestServer(t *testing.T) *TestServer {
 
 // CleanupTestServer cleans up the test server and database
 func (ts *TestServer) CleanupTestServer(t *testing.T) {
+
 	if ts.Server != nil {
 		ts.Server.Close()
 	}
@@ -68,9 +70,28 @@ func (ts *TestServer) CleanupTestServer(t *testing.T) {
 		database.CloseDB()
 	}
 }
+func getRandomEmail() string {
+	return fmt.Sprintf("%s@example.com", uuid.New().String()[0:8])
+}
+
+func getRandomPhoneNumber() string {
+	return fmt.Sprintf("%d", rand.Intn(9999999999))
+}
+
+func GetTestUserDetails() map[string]string {
+	// Create test user
+	userDetails := map[string]string{
+		"email": getRandomEmail(),
+		"name":  "Test User",
+		"phone": getRandomPhoneNumber(),
+	}
+
+	return userDetails
+
+}
 
 // CreateTestCustomer creates a test customer and returns the customer data
-func CreateTestCustomer(t *testing.T, ts *TestServer, customerData map[string]interface{}) (*models.Customer, string) {
+func CreateTestCustomer(t *testing.T, ts *TestServer, customerData map[string]string) (*models.Customer, string) {
 
 	jsonData, _ := json.Marshal(customerData)
 	req, _ := http.NewRequest("POST", ts.Server.URL+"/api/customers", bytes.NewBuffer(jsonData))
@@ -212,8 +233,6 @@ func MakeRequest(t *testing.T, ts *TestServer, method, path string, body interfa
 	}
 
 	client := &http.Client{}
-
-	log.Printf("\n\n[+] Request headers: %v\n\n", req.Header)
 
 	resp, err := client.Do(req)
 	assert.NoError(t, err)
