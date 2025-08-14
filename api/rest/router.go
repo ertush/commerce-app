@@ -40,22 +40,23 @@ func Router() http.Handler {
 		r.HandleFunc("/api/auth/login", authHandler.Login).Methods("GET")
 		r.HandleFunc("/api/auth/callback", authHandler.Callback).Methods("GET")
 		r.HandleFunc("/api/auth/logout", authHandler.Logout).Methods("POST")
-		r.HandleFunc("/api/auth/userinfo", authHandler.UserInfo).Methods("GET")
 	}
-
-	// Public customer routes (no authentication required)
-	r.HandleFunc("/api/customers", customerHandler.CreateCustomer).Methods("POST")
-	r.HandleFunc("/api/customers/login", customerHandler.LoginCustomer).Methods("POST")
 
 	// Protected customer routes (require authentication)
 	protectedCustomer := r.PathPrefix("/api/customers").Subrouter()
 	if oidcMiddleware != nil {
 		protectedCustomer.Use(oidcMiddleware.RequireAuth)
-	} else {
-		protectedCustomer.Use(auth.AuthMiddleware)
 	}
+
+	protectedCustomer.HandleFunc("", customerHandler.CreateCustomer).Methods("POST")
 	protectedCustomer.HandleFunc("/{id}", customerHandler.GetCustomer).Methods("GET")
 	protectedCustomer.HandleFunc("/{customerId}/orders", orderHandler.GetOrdersByCustomer).Methods("GET")
+
+	// Protected user info route (require authentication)
+	protectedUserInfo := r.PathPrefix("/api/auth/userinfo").Subrouter()
+	if oidcMiddleware != nil {
+		protectedUserInfo.Use(oidcMiddleware.RequireAuth)
+	}
 
 	// Product routes
 	r.HandleFunc("/api/products", productHandler.CreateProduct).Methods("POST")
@@ -76,12 +77,12 @@ func Router() http.Handler {
 	r.HandleFunc("/api/orders/{id}/status", orderHandler.UpdateOrderStatus).Methods("PUT")
 
 	// Protected routes (require authentication)
-	protected := r.PathPrefix("/api/protected").Subrouter()
-	if oidcMiddleware != nil {
-		protected.Use(oidcMiddleware.RequireAuth)
-	} else {
-		protected.Use(auth.AuthMiddleware)
-	}
+	// protected := r.PathPrefix("/api/protected").Subrouter()
+	// if oidcMiddleware != nil {
+	// 	protected.Use(oidcMiddleware.RequireAuth)
+	// } else {
+	// 	protected.Use(auth.AuthMiddleware)
+	// }
 
 	// Health check
 	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
