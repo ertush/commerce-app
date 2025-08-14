@@ -48,6 +48,16 @@ func (r *CustomerRepository) GetByEmail(email string) (*models.Customer, error) 
 	return customer, nil
 }
 
+func (r *CustomerRepository) Delete(id uuid.UUID) error {
+	query := `DELETE FROM customers WHERE id = $1`
+
+	_, err := DB.Exec(query, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // CategoryRepository handles category database operations
 type CategoryRepository struct{}
 
@@ -134,6 +144,13 @@ func (r *CategoryRepository) GetChildren(parentID uuid.UUID) ([]models.Category,
 		categories = append(categories, category)
 	}
 	return categories, nil
+}
+
+func (r *CategoryRepository) Delete(id uuid.UUID, level int) error {
+	query := `DELETE FROM categories WHERE id = $1 and level = $2`
+
+	_, err := DB.Exec(query, id, level)
+	return err
 }
 
 // ProductRepository handles product database operations
@@ -260,6 +277,16 @@ func (r *ProductRepository) GetAveragePriceByCategory(categoryID uuid.UUID) (*mo
 	return &categoryPrice, nil
 }
 
+func (r *ProductRepository) Delete(id uuid.UUID) error {
+	query := `DELETE FROM products WHERE id = $1`
+
+	_, err := DB.Exec(query, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // OrderRepository handles order database operations
 type OrderRepository struct{}
 
@@ -383,4 +410,10 @@ func (r *OrderRepository) GetByCustomer(customerID uuid.UUID) ([]models.Order, e
 		orders = append(orders, order)
 	}
 	return orders, nil
+}
+
+func (r *OrderRepository) Delete(id uuid.UUID) error {
+	query := `DELETE FROM orders WHERE id = $1`
+	_, err := DB.Exec(query, id)
+	return err
 }
