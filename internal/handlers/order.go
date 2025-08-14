@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"slices"
-	"strconv"
-	"strings"
+
+	// "strings"
 
 	"commerce-app/internal/database"
 	"commerce-app/internal/models"
@@ -21,6 +21,7 @@ type OrderHandler struct {
 	customerRepo *database.CustomerRepository
 	productRepo  *database.ProductRepository
 	smsService   *notifications.SMSService
+	categoryRepo *database.CategoryRepository
 	emailService *notifications.EmailService
 }
 
@@ -29,6 +30,7 @@ func NewOrderHandler() *OrderHandler {
 		orderRepo:    &database.OrderRepository{},
 		customerRepo: &database.CustomerRepository{},
 		productRepo:  &database.ProductRepository{},
+		categoryRepo: &database.CategoryRepository{},
 		smsService:   notifications.NewSMSService(),
 		emailService: notifications.NewEmailService(),
 	}
@@ -56,21 +58,12 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	product, err := h.productRepo.GetByID(orderRequest.Items[0].ProductID)
-	if err != nil {
-		http.Error(w, "Product not found", http.StatusNotFound)
-		return
-	}
-
-	h.productRepo.UpdateStock(&models.Product{
-		Stock: product.Stock - orderRequest.Items[0].Quantity,
-	})
-
 	// Create order
 	order := &models.Order{
 		CustomerID: orderRequest.CustomerID,
 		Status:     "pending",
 		Total:      0,
+		Customer:   *customer,
 		Items:      []models.OrderItem{},
 	}
 
@@ -85,6 +78,16 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 
 		if product.Stock < item.Quantity {
 			http.Error(w, fmt.Sprintf("Insufficient stock for product: %s", product.Name), http.StatusBadRequest)
+			return
+		}
+
+		//Update stock
+		error := h.productRepo.UpdateStock(&models.Product{
+			ID:    product.ID,
+			Stock: product.Stock - item.Quantity,
+		})
+		if error != nil {
+			http.Error(w, fmt.Sprintf("Failed to update stock for product: %s", product.Name), http.StatusInternalServerError)
 			return
 		}
 
@@ -109,87 +112,55 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	msgOrderID := order.ID.String()[0:8] + "..." + order.ID.String()[len(order.ID.String())-4:]
+	// msgOrderID := order.ID.String()[0:8] + "..." + order.ID.String()[len(order.ID.String())-4:]
 
 	// Send SMS notification to customer
-	go func() {
-		// "New Order Placed has been received.Order ID: #%s,\ncustomer name: %s,\nphone: %s,\nemail: %s,\ntotal: $%.2f,\nproduct: %s,\nqty: x%d",
+	// go func() {
+	// 	// "New Order Placed has been received.Order ID: #%s,\ncustomer name: %s,\nphone: %s,\nemail: %s,\ntotal: $%.2f,\nproduct: %s,\nqty: x%d",
 
-		message := fmt.Sprintf(`
-								New order has been Received!
+	// 	message := fmt.Sprintf(`
+	// 							New order has been Received!
 
-								Order Details:
-								- Order ID: %s
-								- Name: %s
-								- Phone: %s
-								- Total Amount: Ksh%.2f
+	// 							Order Details:
+	// 							- Order ID: %s
+	// 							- Name: %s
+	// 							- Phone: %s
+	// 							- Total Amount: Ksh%.2f
 
-								Order Items:
-								%s
-								`,
-			msgOrderID,
-			customer.Name,
-			customer.Phone,
-			order.Total,
-			strings.Join(itemDetails, "\n"))
+	// 							Order Items:
+	// 							%s
+	// 							`,
+	// 		msgOrderID,
+	// 		customer.Name,
+	// 		customer.Phone,
+	// 		order.Total,
+	// 		strings.Join(itemDetails, "\n"))
 
-		err := h.smsService.SendOrderNotification(message)
-		if err != nil {
-			fmt.Printf("Failed to send SMS notification: %v\n", err)
-		}
+	// 	err := h.smsService.SendOrderNotification(message)
+	// 	if err != nil {
+	// 		fmt.Printf("Failed to send SMS notification: %v\n", err)
+	// 	}
 
-	}()
+	// }()
 
 	// Send email notification to admin
-	go func() {
-		if err := h.emailService.SendOrderNotificationToAdmin(
-			msgOrderID,
-			customer.Name,
-			customer.Email,
-			customer.Phone,
-			order.Total,
-			itemDetails,
-		); err != nil {
-			fmt.Printf("Failed to send email notification: %v\n", err)
-		}
-	}()
-
-	orderTotal, err := strconv.ParseFloat(fmt.Sprintf("%.2f", order.Total), 64)
-	if err != nil {
-		fmt.Println("Error converting string to float64:", err)
-		return
-	}
-
-	response := &models.OrderResponse{
-		ID:         order.ID,
-		CustomerID: order.CustomerID,
-		Status:     order.Status,
-		Total:      orderTotal,
-		CreatedAt:  order.CreatedAt,
-		UpdatedAt:  order.UpdatedAt,
-		Items: []models.OrderItemResponse{
-			{
-				ID:        order.Items[0].ID,
-				OrderID:   order.Items[0].OrderID,
-				ProductID: order.Items[0].ProductID,
-				Quantity:  order.Items[0].Quantity,
-				Price:     order.Items[0].Price,
-				Product: models.ProductResponse{
-					ID:          order.Items[0].Product.ID,
-					Name:        order.Items[0].Product.Name,
-					Description: order.Items[0].Product.Description,
-					Price:       order.Items[0].Product.Price,
-					CategoryID:  order.Items[0].Product.CategoryID,
-					Stock:       order.Items[0].Product.Stock,
-					ImageURL:    order.Items[0].Product.ImageURL,
-				},
-			},
-		},
-	}
+	// go func() {
+	// 	if err := h.emailService.SendOrderNotificationToAdmin(
+	// 		msgOrderID,
+	// 		customer.Name,
+	// 		customer.Email,
+	// 		customer.Phone,
+	// 		order.Total,
+	// 		itemDetails,
+	// 	); err != nil {
+	// 		fmt.Printf("Failed to send email notification: %v\n", err)
+	// 	}
+	// }()
+	//
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(response)
+	json.NewEncoder(w).Encode(order)
 }
 
 // GetOrder gets an order by ID
@@ -207,8 +178,48 @@ func (h *OrderHandler) GetOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	responseOrder := &models.Order{
+		ID:         order.ID,
+		CustomerID: order.CustomerID,
+		Total:      order.Total,
+		Status:     order.Status,
+		CreatedAt:  order.CreatedAt,
+		UpdatedAt:  order.UpdatedAt,
+		Customer:   order.Customer,
+		Items:      []models.OrderItem{},
+	}
+
+	for _, item := range order.Items {
+		category_id := item.Product.CategoryID
+		category, err := h.categoryRepo.GetByID(category_id)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		product := &models.Product{
+			ID:          item.Product.ID,
+			Name:        item.Product.Name,
+			Description: item.Product.Description,
+			Price:       item.Product.Price,
+			CategoryID:  item.Product.CategoryID,
+			Stock:       item.Product.Stock,
+			ImageURL:    item.Product.ImageURL,
+			Category:    *category,
+		}
+
+		responseOrder.Items = append(responseOrder.Items, models.OrderItem{
+			ID:        item.ID,
+			OrderID:   item.OrderID,
+			ProductID: item.ProductID,
+			Quantity:  item.Quantity,
+			Price:     item.Price,
+			Product:   *product,
+		})
+
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(order)
+	json.NewEncoder(w).Encode(responseOrder)
 }
 
 // GetOrdersByCustomer gets orders for a customer
@@ -271,33 +282,44 @@ func (h *OrderHandler) UpdateOrderStatus(w http.ResponseWriter, r *http.Request)
 
 	order.Status = statusUpdate.Status
 
-	responseOrder := models.OrderResponse{
+	responseOrder := &models.Order{
 		ID:         order.ID,
 		CustomerID: order.CustomerID,
-		Status:     statusUpdate.Status,
 		Total:      order.Total,
+		Status:     order.Status,
 		CreatedAt:  order.CreatedAt,
 		UpdatedAt:  order.UpdatedAt,
-		Items: []models.OrderItemResponse{
-			{
-				ID:        order.Items[0].ID,
-				OrderID:   order.ID,
-				ProductID: order.Items[0].ProductID,
-				Quantity:  order.Items[0].Quantity,
-				Price:     order.Items[0].Price,
-				Product: models.ProductResponse{
-					ID:          order.Items[0].ProductID,
-					Name:        order.Items[0].Product.Name,
-					Description: order.Items[0].Product.Description,
-					Price:       order.Items[0].Product.Price,
-					CategoryID:  order.Items[0].Product.CategoryID,
-					Stock:       order.Items[0].Product.Stock,
-					ImageURL:    order.Items[0].Product.ImageURL,
-					CreatedAt:   order.Items[0].Product.CreatedAt,
-					UpdatedAt:   order.Items[0].Product.UpdatedAt,
-				},
-			},
-		},
+		Customer:   order.Customer,
+		Items:      []models.OrderItem{},
+	}
+
+	for _, item := range order.Items {
+		category_id := item.Product.CategoryID
+		category, err := h.categoryRepo.GetByID(category_id)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		product := &models.Product{
+			ID:          item.Product.ID,
+			Name:        item.Product.Name,
+			Description: item.Product.Description,
+			Price:       item.Product.Price,
+			CategoryID:  item.Product.CategoryID,
+			Stock:       item.Product.Stock,
+			ImageURL:    item.Product.ImageURL,
+			Category:    *category,
+		}
+
+		responseOrder.Items = append(responseOrder.Items, models.OrderItem{
+			ID:        item.ID,
+			OrderID:   item.OrderID,
+			ProductID: item.ProductID,
+			Quantity:  item.Quantity,
+			Price:     item.Price,
+			Product:   *product,
+		})
+
 	}
 
 	w.Header().Set("Content-Type", "application/json")
