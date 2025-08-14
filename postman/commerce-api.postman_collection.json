@@ -67,48 +67,6 @@
             "description": "Logout current user and clear authentication cookies (Protected - Requires authentication)"
           },
           "response": []
-        },
-        {
-          "name": "Get User Info",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/auth/userinfo",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "userinfo"]
-            },
-            "description": "Get current user information (Protected - Requires authentication)"
-          },
-          "response": []
-        },
-        {
-          "name": "Customer Login (Traditional)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"email\": \"john@example.com\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/customers/login",
-              "host": ["{{base_url}}"],
-              "path": ["api", "customers", "login"]
-            },
-            "description": "Traditional customer login with JWT token (Public - No authentication required)"
-          },
-          "response": []
         }
       ]
     },
