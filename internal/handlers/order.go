@@ -3,8 +3,10 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"slices"
+	"strconv"
 
 	// "strings"
 
@@ -207,12 +209,18 @@ func (h *OrderHandler) GetOrder(w http.ResponseWriter, r *http.Request) {
 			Category:    *category,
 		}
 
+		itemPrice, err := strconv.ParseFloat(fmt.Sprintf("%.2f", item.Price*float64(item.Quantity)), 64)
+		if err != nil {
+			log.Printf("Failed to parse item price: %v", err)
+			return
+		}
+
 		responseOrder.Items = append(responseOrder.Items, models.OrderItem{
 			ID:        item.ID,
 			OrderID:   item.OrderID,
 			ProductID: item.ProductID,
 			Quantity:  item.Quantity,
-			Price:     item.Price,
+			Price:     itemPrice,
 			Product:   *product,
 		})
 
@@ -237,8 +245,69 @@ func (h *OrderHandler) GetOrdersByCustomer(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	var responseOrders []models.Order
+
+	for _, orderItems := range orders {
+
+		order, err := h.orderRepo.GetByID(orderItems.ID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+
+		responseOrder := &models.Order{
+			ID:         order.ID,
+			CustomerID: order.CustomerID,
+			Total:      order.Total,
+			Status:     order.Status,
+			CreatedAt:  order.CreatedAt,
+			UpdatedAt:  order.UpdatedAt,
+			Customer:   order.Customer,
+			Items:      []models.OrderItem{},
+		}
+
+		for _, item := range order.Items {
+			category_id := item.Product.CategoryID
+			category, err := h.categoryRepo.GetByID(category_id)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusNotFound)
+				return
+			}
+			product := &models.Product{
+				ID:          item.Product.ID,
+				Name:        item.Product.Name,
+				Description: item.Product.Description,
+				Price:       item.Product.Price,
+				CategoryID:  item.Product.CategoryID,
+				Stock:       item.Product.Stock,
+				ImageURL:    item.Product.ImageURL,
+				Category:    *category,
+			}
+
+			itemPrice, err := strconv.ParseFloat(fmt.Sprintf("%.2f", item.Price*float64(item.Quantity)), 64)
+			if err != nil {
+				log.Printf("Failed to parse item price: %v", err)
+				return
+			}
+
+			responseOrder.Items = append(responseOrder.Items, models.OrderItem{
+				ID:        item.ID,
+				OrderID:   item.OrderID,
+				ProductID: item.ProductID,
+				Quantity:  item.Quantity,
+				Price:     itemPrice,
+				Product:   *product,
+			})
+
+			responseOrders = append(responseOrders, *responseOrder)
+		}
+
+	}
+
+	responseOrders = responseOrders[len(responseOrders)-1:]
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(orders)
+	json.NewEncoder(w).Encode(responseOrders)
 }
 
 // UpdateOrderStatus updates the status of an order
@@ -311,12 +380,18 @@ func (h *OrderHandler) UpdateOrderStatus(w http.ResponseWriter, r *http.Request)
 			Category:    *category,
 		}
 
+		itemPrice, err := strconv.ParseFloat(fmt.Sprintf("%.2f", item.Price*float64(item.Quantity)), 64)
+		if err != nil {
+			log.Printf("Failed to parse item price: %v", err)
+			return
+		}
+
 		responseOrder.Items = append(responseOrder.Items, models.OrderItem{
 			ID:        item.ID,
 			OrderID:   item.OrderID,
 			ProductID: item.ProductID,
 			Quantity:  item.Quantity,
-			Price:     item.Price,
+			Price:     itemPrice,
 			Product:   *product,
 		})
 
