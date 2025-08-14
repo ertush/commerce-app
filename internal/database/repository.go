@@ -272,7 +272,6 @@ func (r *OrderRepository) Create(order *models.Order) error {
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
 
 	// Insert order
 	query := `INSERT INTO orders (id, customer_id, status, total, created_at, updated_at)
@@ -357,11 +356,13 @@ func (r *OrderRepository) GetByID(id uuid.UUID) (*models.Order, error) {
 	return order, nil
 }
 
-func (r *OrderRepository) GetByCustomer(customerID uuid.UUID) ([]models.OrderResponse, error) {
-	query := `SELECT o.id, o.customer_id, o.status, o.total, o.created_at, o.updated_at
-			  FROM orders o
-			  WHERE o.customer_id = $1
-			  ORDER BY o.created_at DESC`
+func (r *OrderRepository) GetByCustomer(customerID uuid.UUID) ([]models.Order, error) {
+	query := `SELECT o.id, o.customer_id, o.status, o.total, o.created_at, o.updated_at,
+          		     c.id, c.email, c.name, c.phone, c.created_at, c.updated_at
+			   FROM orders o
+			   LEFT JOIN customers c ON o.customer_id = c.id
+			   WHERE o.customer_id = $1
+			   ORDER BY o.created_at DESC`
 
 	rows, err := DB.Query(query, customerID)
 	if err != nil {
@@ -369,11 +370,13 @@ func (r *OrderRepository) GetByCustomer(customerID uuid.UUID) ([]models.OrderRes
 	}
 	defer rows.Close()
 
-	var orders []models.OrderResponse
+	var orders []models.Order
 	for rows.Next() {
-		var order models.OrderResponse
+		var order models.Order
 		err := rows.Scan(&order.ID, &order.CustomerID, &order.Status, &order.Total,
-			&order.CreatedAt, &order.UpdatedAt)
+			&order.CreatedAt, &order.UpdatedAt, &order.Customer.ID, &order.Customer.Email,
+			&order.Customer.Name, &order.Customer.Phone, &order.Customer.CreatedAt, &order.Customer.UpdatedAt)
+
 		if err != nil {
 			return nil, err
 		}
