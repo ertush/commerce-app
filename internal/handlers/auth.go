@@ -265,26 +265,6 @@ func (h *AuthHandler) getOIDCLogoutURL() string {
 	return "" // No known logout URL
 }
 
-// UserInfo returns the current user's information
-func (h *AuthHandler) UserInfo(w http.ResponseWriter, r *http.Request) {
-	// Extract user info from context (set by middleware)
-	userID := r.Context().Value("user_id")
-	email := r.Context().Value("email")
-
-	if userID == nil || email == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	response := map[string]interface{}{
-		"user_id": userID,
-		"email":   email,
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
-}
-
 // GetOIDCProvider returns the OIDC provider instance
 func (h *AuthHandler) GetOIDCProvider() *auth.OIDCProvider {
 	return h.oidcProvider
