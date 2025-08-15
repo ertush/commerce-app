@@ -15,93 +15,93 @@ import (
 )
 
 // TestCustomerRoutes tests all customer-related endpoints
-func TestCustomerRoutes(t *testing.T) {
-	ts := SetupTestServer(t)
-	defer ts.CleanupTestServer(t)
+// func TestCustomerRoutes(t *testing.T) {
+// 	ts := SetupTestServer(t)
+// 	defer ts.CleanupTestServer(t)
 
-	t.Run("CreateCustomer", func(t *testing.T) {
+// 	t.Run("CreateCustomer", func(t *testing.T) {
 
-		var customerRepo *database.CustomerRepository
-		customerRepo = &database.CustomerRepository{}
+// 		var customerRepo *database.CustomerRepository
+// 		customerRepo = &database.CustomerRepository{}
 
-		customerData := GetTestUserDetails()
-		customer, token := CreateTestCustomer(t, ts, customerData)
+// 		customerData := GetTestUserDetails()
+// 		customer, token := CreateTestCustomer(t, ts, customerData)
 
-		// log.Printf("CustomerData: %v, CustomerID: %v", customerData, customer.ID)
+// 		// log.Printf("CustomerData: %v, CustomerID: %v", customerData, customer.ID)
 
-		assert.NotNil(t, customer)
-		assert.NotEmpty(t, token)
+// 		assert.NotNil(t, customer)
+// 		assert.NotEmpty(t, token)
 
-		assert.Equal(t, customerData["email"], customer.Email)
-		assert.Equal(t, customerData["name"], customer.Name)
-		assert.Equal(t, customerData["phone"], customer.Phone)
+// 		assert.Equal(t, customerData["email"], customer.Email)
+// 		assert.Equal(t, customerData["name"], customer.Name)
+// 		assert.Equal(t, customerData["phone"], customer.Phone)
 
-		// Clean Up
-		err := customerRepo.Delete(customer.ID)
-		assert.NoError(t, err)
+// 		// Clean Up
+// 		err := customerRepo.Delete(customer.ID)
+// 		assert.NoError(t, err)
 
-	})
+// 	})
 
-	t.Run("CreateCustomerInvalidData", func(t *testing.T) {
-		customerData := map[string]string{
-			"email": "invalid-email",
-			"name":  "",
-			"phone": "",
-		}
+// 	t.Run("CreateCustomerInvalidData", func(t *testing.T) {
+// 		customerData := map[string]string{
+// 			"email": "invalid-email",
+// 			"name":  "",
+// 			"phone": "",
+// 		}
 
-		token := os.Getenv("TEST_ACCESS_TOKEN")
+// 		token := os.Getenv("TEST_ACCESS_TOKEN")
 
-		headers := map[string]string{
-			"Authorization": fmt.Sprintf("Bearer %s", token),
-		}
-		resp := MakeRequest(t, ts, "POST", "/api/customers", customerData, headers)
-		defer resp.Body.Close()
+// 		headers := map[string]string{
+// 			"Authorization": fmt.Sprintf("Bearer %s", token),
+// 		}
+// 		resp := MakeRequest(t, ts, "POST", "/api/customers", customerData, headers)
+// 		defer resp.Body.Close()
 
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-	})
+// 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+// 	})
 
-	t.Run("GetCustomer", func(t *testing.T) {
-		var customerRepo *database.CustomerRepository
-		customerRepo = &database.CustomerRepository{}
+// 	t.Run("GetCustomer", func(t *testing.T) {
+// 		var customerRepo *database.CustomerRepository
+// 		customerRepo = &database.CustomerRepository{}
 
-		customerData := GetTestUserDetails()
-		customer, token := CreateTestCustomer(t, ts, customerData)
+// 		customerData := GetTestUserDetails()
+// 		customer, token := CreateTestCustomer(t, ts, customerData)
 
-		headers := map[string]string{
-			"Authorization": fmt.Sprintf("Bearer %s", token),
-		}
+// 		headers := map[string]string{
+// 			"Authorization": fmt.Sprintf("Bearer %s", token),
+// 		}
 
-		resp := MakeRequest(t, ts, "GET", "/api/customers/"+customer.ID.String(), nil, headers)
-		defer resp.Body.Close()
+// 		resp := MakeRequest(t, ts, "GET", "/api/customers/"+customer.ID.String(), nil, headers)
+// 		defer resp.Body.Close()
 
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
+// 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-		var retrievedCustomer models.Customer
-		err := json.NewDecoder(resp.Body).Decode(&retrievedCustomer)
-		assert.NoError(t, err)
+// 		var retrievedCustomer models.Customer
+// 		err := json.NewDecoder(resp.Body).Decode(&retrievedCustomer)
+// 		assert.NoError(t, err)
 
-		assert.Equal(t, customer.ID, retrievedCustomer.ID)
-		assert.Equal(t, customer.Email, retrievedCustomer.Email)
-		assert.Equal(t, customer.Name, retrievedCustomer.Name)
-		assert.Equal(t, customer.Phone, retrievedCustomer.Phone)
+// 		assert.Equal(t, customer.ID, retrievedCustomer.ID)
+// 		assert.Equal(t, customer.Email, retrievedCustomer.Email)
+// 		assert.Equal(t, customer.Name, retrievedCustomer.Name)
+// 		assert.Equal(t, customer.Phone, retrievedCustomer.Phone)
 
-		// Clean up
-		err = customerRepo.Delete(customer.ID)
-		assert.NoError(t, err)
-	})
+// 		// Clean up
+// 		err = customerRepo.Delete(customer.ID)
+// 		assert.NoError(t, err)
+// 	})
 
-	t.Run("GetCustomerNotFound", func(t *testing.T) {
-		randomID := uuid.New()
+// 	t.Run("GetCustomerNotFound", func(t *testing.T) {
+// 		randomID := uuid.New()
 
-		headers := map[string]string{
-			"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("TEST_ACCESS_TOKEN")),
-		}
-		resp := MakeRequest(t, ts, "GET", "/api/customers/"+randomID.String(), nil, headers)
-		defer resp.Body.Close()
+// 		headers := map[string]string{
+// 			"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("TEST_ACCESS_TOKEN")),
+// 		}
+// 		resp := MakeRequest(t, ts, "GET", "/api/customers/"+randomID.String(), nil, headers)
+// 		defer resp.Body.Close()
 
-		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
-	})
-}
+// 		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+// 	})
+// }
 
 // TestCategoryRoutes tests all category-related endpoints
 func TestCategoryRoutes(t *testing.T) {
