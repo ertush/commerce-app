@@ -71,7 +71,7 @@ setup_minikube() {
     # Check if minikube is running
     if ! minikube status | grep -q "Running"; then
         echo "Starting minikube..."
-        minikube start --driver=docker --memory=4096 --cpus=2
+        minikube start --driver=docker --memory=2200mb --cpus=2
     else
         echo "Minikube is already running"
     fi
