@@ -105,6 +105,7 @@ docs/IMPLEMENTATION_PLAN.md
 # scripts
 run.sh
 dev.sh
+install-k8s-tools.sh
 
 # Secrets
 secrets/
