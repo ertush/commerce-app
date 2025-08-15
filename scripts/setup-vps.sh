@@ -32,6 +32,8 @@ if ! command -v docker &> /dev/null; then
     sudo systemctl start docker
     sudo systemctl enable docker
     rm get-docker.sh
+
+    sudo usermod -aG docker $USER && newgrp docker
 fi
 
 # Install kubectl
