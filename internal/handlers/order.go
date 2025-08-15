@@ -8,7 +8,7 @@ import (
 	"slices"
 	"strconv"
 
-	// "strings"
+	"strings"
 
 	"commerce-app/internal/database"
 	"commerce-app/internal/models"
@@ -114,51 +114,50 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// msgOrderID := order.ID.String()[0:8] + "..." + order.ID.String()[len(order.ID.String())-4:]
+	msgOrderID := order.ID.String()[0:8] + "..." + order.ID.String()[len(order.ID.String())-4:]
 
 	// Send SMS notification to customer
-	// go func() {
-	// 	// "New Order Placed has been received.Order ID: #%s,\ncustomer name: %s,\nphone: %s,\nemail: %s,\ntotal: $%.2f,\nproduct: %s,\nqty: x%d",
+	go func() {
+		// "New Order Placed has been received.Order ID: #%s,\ncustomer name: %s,\nphone: %s,\nemail: %s,\ntotal: $%.2f,\nproduct: %s,\nqty: x%d",
 
-	// 	message := fmt.Sprintf(`
-	// 							New order has been Received!
+		message := fmt.Sprintf(`
+								New order has been Received!
 
-	// 							Order Details:
-	// 							- Order ID: %s
-	// 							- Name: %s
-	// 							- Phone: %s
-	// 							- Total Amount: Ksh%.2f
+								Order Details:
+								- Order ID: %s
+								- Name: %s
+								- Phone: %s
+								- Total Amount: Ksh%.2f
 
-	// 							Order Items:
-	// 							%s
-	// 							`,
-	// 		msgOrderID,
-	// 		customer.Name,
-	// 		customer.Phone,
-	// 		order.Total,
-	// 		strings.Join(itemDetails, "\n"))
+								Order Items:
+								%s
+								`,
+			msgOrderID,
+			customer.Name,
+			customer.Phone,
+			order.Total,
+			strings.Join(itemDetails, "\n"))
 
-	// 	err := h.smsService.SendOrderNotification(message)
-	// 	if err != nil {
-	// 		fmt.Printf("Failed to send SMS notification: %v\n", err)
-	// 	}
+		err := h.smsService.SendOrderNotification(message)
+		if err != nil {
+			fmt.Printf("Failed to send SMS notification: %v\n", err)
+		}
 
-	// }()
+	}()
 
 	// Send email notification to admin
-	// go func() {
-	// 	if err := h.emailService.SendOrderNotificationToAdmin(
-	// 		msgOrderID,
-	// 		customer.Name,
-	// 		customer.Email,
-	// 		customer.Phone,
-	// 		order.Total,
-	// 		itemDetails,
-	// 	); err != nil {
-	// 		fmt.Printf("Failed to send email notification: %v\n", err)
-	// 	}
-	// }()
-	//
+	go func() {
+		if err := h.emailService.SendOrderNotificationToAdmin(
+			msgOrderID,
+			customer.Name,
+			customer.Email,
+			customer.Phone,
+			order.Total,
+			itemDetails,
+		); err != nil {
+			fmt.Printf("Failed to send email notification: %v\n", err)
+		}
+	}()
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)

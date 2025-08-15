@@ -105,3 +105,6 @@ docs/IMPLEMENTATION_PLAN.md
 # scripts
 run.sh
 dev.sh
+
+# Secrets
+secrets/

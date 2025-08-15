@@ -1,4 +1,12 @@
-version: "3.8"
+secrets:
+  oidc_client_secret:
+    file: ./secrets/oidc_client_secret.txt
+  oidc_client_id:
+    file: ./secrets/oidc_client_id.txt
+  smtp_password:
+    file: ./secrets/smtp_password.txt
+  africastalking_api_key:
+    file: ./secrets/africastalking_api_key.txt
 
 services:
   postgres:
@@ -31,17 +39,18 @@ services:
       - DB_NAME=ecommerce
       - PORT=8181
       - OIDC_PROVIDER_URL=https://modest-cori-rk4ib6mfzq.projects.oryapis.com
-      - OIDC_CLIENT_ID=de6aaa18-aafc-4ddc-89d1-730dc9065039
-      - OIDC_CLIENT_SECRET=aHoSV4tgCJ9HHA7xNUXKpCVbCe
+      - OIDC_CLIENT_ID=$(cat /run/secrets/oidc_client_id.txt)
+      - OIDC_CLIENT_SECRET=$(cat /run/secrets/oidc_client_secret.txt)
       - OIDC_REDIRECT_URL=http://localhost:8181/api/auth/callback
-      - AFRICASTALKING_API_KEY=sandbox
+      - AFRICASTALKING_API_KEY=$(cat /run/secrets/africastalking_api_key.txt)
       - AFRICASTALKING_USERNAME=sandbox
-      - AFRICASTALKING_BASE_URL=https://api.sandbox.africastalking.com
+      - AFRICASTALKING_SENDER_ID=ATECOMY2025
+      - AFRICASTALKING_RECEIVER_ID=+254707649311
       - SMTP_HOST=smtp.gmail.com
       - SMTP_PORT=587
-      - SMTP_USERNAME=your_email@gmail.com
-      - SMTP_PASSWORD=your_app_password
-      - ADMIN_EMAIL=admin@ecommerce.com
+      - SMTP_USERNAME=erotush77@gmail.com
+      - SMTP_PASSWORD=$(cat /run/secrets/smtp_password.txt)
+      - ADMIN_EMAIL=info@eric-mutua.site
     depends_on:
       postgres:
         condition: service_healthy
