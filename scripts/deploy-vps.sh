@@ -41,7 +41,7 @@ install_dependencies() {
         echo "Installing Docker..."
         curl -fsSL https://get.docker.com -o get-docker.sh
         sudo sh get-docker.sh
-        sudo usermod -aG docker $USER
+        sudo usermod -aG docker $USER && newgrp docker
         sudo systemctl start docker
         sudo systemctl enable docker
     fi
@@ -60,6 +60,7 @@ install_dependencies() {
         curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
         chmod +x minikube-linux-amd64
         sudo mv minikube-linux-amd64 /usr/local/bin/minikube
+
     fi
 }
 
