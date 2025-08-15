@@ -40,7 +40,7 @@ type Product struct {
 	ImageURL    string    `json:"image_url" db:"image_url"`
 	CreatedAt   time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at" db:"updated_at"`
-	Category    Category  `json:"category,omitempty"`
+	Category    Category  `json:"category"`
 }
 
 // Order represents an order in the system
@@ -51,7 +51,7 @@ type Order struct {
 	Total      float64     `json:"total" db:"total"`
 	CreatedAt  time.Time   `json:"created_at" db:"created_at"`
 	UpdatedAt  time.Time   `json:"updated_at" db:"updated_at"`
-	Customer   Customer    `json:"customer,omitempty"`
+	Customer   Customer    `json:"customer"`
 	Items      []OrderItem `json:"items,omitempty"`
 }
 
@@ -62,7 +62,7 @@ type OrderItem struct {
 	ProductID uuid.UUID `json:"product_id" db:"product_id"`
 	Quantity  int       `json:"quantity" db:"quantity"`
 	Price     float64   `json:"price" db:"price"`
-	Product   Product   `json:"product,omitempty"`
+	Product   Product   `json:"product"`
 }
 
 // CategoryPrice represents average price for a category

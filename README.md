@@ -82,6 +82,7 @@ See [OIDC Setup Guide](examples/oidc-setup.md) for detailed instructions on conf
 - Microsoft Azure AD
 - Auth0
 - Keycloak
+- Hydra By Ory
 
 ### 4. Run Locally
 
@@ -124,7 +125,6 @@ minikube start
 - `GET /api/auth/login` - Initiate OIDC login
 - `GET /api/auth/callback` - Handle OIDC callback
 - `POST /api/auth/logout` - Logout user
-- `GET /api/auth/userinfo` - Get current user info
 
 #### Traditional JWT Authentication
 - `POST /api/customers` - Register new customer

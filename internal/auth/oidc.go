@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/coreos/go-oidc/v3/oidc"
@@ -56,12 +57,12 @@ func (a AudienceClaimType) String() string {
 
 // Contains checks if the audience list contains a specific audience
 func (a AudienceClaimType) Contains(audience string) bool {
-	for _, aud := range a {
-		if aud == audience {
-			return true
-		}
+
+	if slices.Contains(a, audience) {
+		return true
 	}
 	return false
+
 }
 
 // ToSlice returns the audience as a string slice
@@ -173,7 +174,7 @@ func (p *OIDCProvider) VerifyIDToken(ctx context.Context, idToken string) (*OIDC
 
 	var claims OIDCClaims
 	if err := token.Claims(&claims); err != nil {
-		log.Printf("\n\n[+] Claims: %v \n\n", claims)
+		// log.Printf("\n\n[+] Claims: %v \n\n", claims)
 		return nil, fmt.Errorf("failed to parse token claims: %w", err)
 	}
 

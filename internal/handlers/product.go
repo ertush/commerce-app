@@ -25,15 +25,32 @@ func NewProductHandler() *ProductHandler {
 
 // CreateProduct creates a new product
 func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
-	var product models.Product
-	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
+	var productRequest models.Product
+	if err := json.NewDecoder(r.Body).Decode(&productRequest); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	if err := h.productRepo.Create(&product); err != nil {
+	if err := h.productRepo.Create(&productRequest); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	category, err := h.categoryRepo.GetByID(productRequest.CategoryID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	product := models.Product{
+		ID:          uuid.New(),
+		Name:        productRequest.Name,
+		Description: productRequest.Description,
+		Price:       productRequest.Price,
+		CategoryID:  productRequest.CategoryID,
+		Stock:       productRequest.Stock,
+		ImageURL:    productRequest.ImageURL,
+		Category:    *category,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

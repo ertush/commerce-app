@@ -42,8 +42,7 @@ func NewAuthHandler() (*AuthHandler, error) {
 // Login initiates the OIDC login flow
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	// Generate state parameter for CSRF protection
-
-	log.Println("[+] Login Handler ...")
+	//
 	state, err := auth.GenerateRandomString(32)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -140,7 +139,7 @@ func (h *AuthHandler) Callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("token: %v\ncode: %v\nrawIDToken: %v", token, code, rawIDToken)
+	// log.Printf("token: %v\ncode: %v\nrawIDToken: %v", token, code, rawIDToken)
 
 	// Verify ID token
 	claims, err := h.oidcProvider.VerifyIDToken(ctx, rawIDToken)
@@ -189,9 +188,9 @@ func (h *AuthHandler) Callback(w http.ResponseWriter, r *http.Request) {
 // Logout handles user logout
 func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	// Extract user info from context (set by middleware)
-	userID, email, authType := auth.GetUserFromContext(r.Context())
+	_, email, authType := auth.GetUserFromContext(r.Context())
 
-	log.Printf("[+] Logout request - userID: %s, email: %s, authType: %s", userID, email, authType)
+	// log.Printf("[+] Logout request - userID: %s, email: %s, authType: %s", userID, email, authType)
 
 	// Clear OIDC-related cookies (if they exist)
 	auth.ClearStateCookie(w, h.oidcProvider.GetStateCookieName())
@@ -238,7 +237,7 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("[+] Logout successful for user %s", email)
+	log.Printf("Logout successful for user %s", email)
 }
 
 // getOIDCLogoutURL constructs the OIDC provider logout URL (if supported)
@@ -264,26 +263,6 @@ func (h *AuthHandler) getOIDCLogoutURL() string {
 	}
 
 	return "" // No known logout URL
-}
-
-// UserInfo returns the current user's information
-func (h *AuthHandler) UserInfo(w http.ResponseWriter, r *http.Request) {
-	// Extract user info from context (set by middleware)
-	userID := r.Context().Value("user_id")
-	email := r.Context().Value("email")
-
-	if userID == nil || email == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	response := map[string]interface{}{
-		"user_id": userID,
-		"email":   email,
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
 }
 
 // GetOIDCProvider returns the OIDC provider instance

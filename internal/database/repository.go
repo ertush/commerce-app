@@ -48,6 +48,16 @@ func (r *CustomerRepository) GetByEmail(email string) (*models.Customer, error) 
 	return customer, nil
 }
 
+func (r *CustomerRepository) Delete(id uuid.UUID) error {
+	query := `DELETE FROM customers WHERE id = $1`
+
+	_, err := DB.Exec(query, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // CategoryRepository handles category database operations
 type CategoryRepository struct{}
 
@@ -136,6 +146,13 @@ func (r *CategoryRepository) GetChildren(parentID uuid.UUID) ([]models.Category,
 	return categories, nil
 }
 
+func (r *CategoryRepository) Delete(id uuid.UUID, level int) error {
+	query := `DELETE FROM categories WHERE id = $1 and level = $2`
+
+	_, err := DB.Exec(query, id, level)
+	return err
+}
+
 // ProductRepository handles product database operations
 type ProductRepository struct{}
 
@@ -170,6 +187,16 @@ func (r *ProductRepository) GetByID(id uuid.UUID) (*models.Product, error) {
 		return nil, err
 	}
 	return product, nil
+}
+
+func (r *ProductRepository) UpdateStock(product *models.Product) error {
+	query := `UPDATE products SET stock = $1, updated_at = $2 WHERE id = $3`
+
+	_, err := DB.Exec(query, product.Stock, time.Now(), product.ID)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *ProductRepository) GetAll() ([]models.Product, error) {
@@ -250,6 +277,16 @@ func (r *ProductRepository) GetAveragePriceByCategory(categoryID uuid.UUID) (*mo
 	return &categoryPrice, nil
 }
 
+func (r *ProductRepository) Delete(id uuid.UUID) error {
+	query := `DELETE FROM products WHERE id = $1`
+
+	_, err := DB.Exec(query, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // OrderRepository handles order database operations
 type OrderRepository struct{}
 
@@ -262,6 +299,7 @@ func (r *OrderRepository) Create(order *models.Order) error {
 	if err != nil {
 		return err
 	}
+
 	defer tx.Rollback()
 
 	// Insert order
@@ -290,6 +328,17 @@ func (r *OrderRepository) Create(order *models.Order) error {
 	}
 
 	return tx.Commit()
+}
+
+func (r *OrderRepository) UpdateStatus(order *models.Order) error {
+	query := `UPDATE orders SET status = $1, updated_at = $2 WHERE id = $3`
+
+	_, err := DB.Exec(query, order.Status, time.Now(), order.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *OrderRepository) GetByID(id uuid.UUID) (*models.Order, error) {
@@ -337,10 +386,12 @@ func (r *OrderRepository) GetByID(id uuid.UUID) (*models.Order, error) {
 }
 
 func (r *OrderRepository) GetByCustomer(customerID uuid.UUID) ([]models.Order, error) {
-	query := `SELECT o.id, o.customer_id, o.status, o.total, o.created_at, o.updated_at
-			  FROM orders o
-			  WHERE o.customer_id = $1
-			  ORDER BY o.created_at DESC`
+	query := `SELECT o.id, o.customer_id, o.status, o.total, o.created_at, o.updated_at,
+          		     c.id, c.email, c.name, c.phone, c.created_at, c.updated_at
+			   FROM orders o
+			   LEFT JOIN customers c ON o.customer_id = c.id
+			   WHERE o.customer_id = $1
+			   ORDER BY o.created_at DESC`
 
 	rows, err := DB.Query(query, customerID)
 	if err != nil {
@@ -352,11 +403,19 @@ func (r *OrderRepository) GetByCustomer(customerID uuid.UUID) ([]models.Order, e
 	for rows.Next() {
 		var order models.Order
 		err := rows.Scan(&order.ID, &order.CustomerID, &order.Status, &order.Total,
-			&order.CreatedAt, &order.UpdatedAt)
+			&order.CreatedAt, &order.UpdatedAt, &order.Customer.ID, &order.Customer.Email,
+			&order.Customer.Name, &order.Customer.Phone, &order.Customer.CreatedAt, &order.Customer.UpdatedAt)
+
 		if err != nil {
 			return nil, err
 		}
 		orders = append(orders, order)
 	}
 	return orders, nil
+}
+
+func (r *OrderRepository) Delete(id uuid.UUID) error {
+	query := `DELETE FROM orders WHERE id = $1`
+	_, err := DB.Exec(query, id)
+	return err
 }

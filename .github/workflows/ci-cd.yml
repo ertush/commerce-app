@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main] # change later to master for activation
+    branches: [master] # change later to master for activation
   pull_request:
-    branches: [main] # change later to master for activation
+    branches: [master] # change later to master for activation
 
 jobs:
   test:
