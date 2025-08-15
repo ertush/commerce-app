@@ -1,0 +1,189 @@
+name: Deploy to VPS with Minikube
+
+on:
+  push:
+    branches: [master, dev]
+
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy to"
+        required: true
+        default: "staging"
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  IMAGE_NAME: ecommerce-app
+  IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: password
+          POSTGRES_USER: postgres
+          POSTGRES_DB: ecommerce_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.24"
+
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Install dependencies
+        run: go mod download
+
+      - name: Run tests
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USER: postgres
+          DB_PASSWORD: password
+          DB_NAME: ecommerce_test
+        run: go test -v ./...
+
+  deploy-staging:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
+    environment: staging
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH key
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+
+      - name: Add VPS to known hosts
+        run: |
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to Staging VPS
+        run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+            set -e
+
+            echo "🚀 Starting deployment to staging..."
+
+            # Navigate to app directory
+            cd /home/${{ secrets.VPS_USER }}/commerce-app || {
+              echo "Creating app directory..."
+              mkdir -p /home/${{ secrets.VPS_USER }}/commerce-app
+              cd /home/${{ secrets.VPS_USER }}/commerce-app
+            }
+
+            # Pull latest code
+            if [ -d ".git" ]; then
+              echo "📥 Pulling latest changes..."
+              git fetch origin
+              git reset --hard origin/dev
+            else
+              echo "📥 Cloning repository..."
+              git clone -b dev ${{ github.server_url }}/${{ github.repository }} .
+            fi
+
+            # Set environment variables
+            export IMAGE_NAME=ecommerce-app
+            export IMAGE_TAG=${{ github.sha }}
+            export ENVIRONMENT=staging
+
+            # Run deployment script
+            chmod +x scripts/deploy-vps.sh
+            ./scripts/deploy-vps.sh
+          EOF
+
+  deploy-production:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH key
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.VPS_SSH_KEY_PROD }}
+
+      - name: Add VPS to known hosts
+        run: |
+          ssh-keyscan -H ${{ secrets.VPS_HOST_PROD }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to Production VPS
+        run: |
+          ssh ${{ secrets.VPS_USER_PROD }}@${{ secrets.VPS_HOST_PROD }} << 'EOF'
+            set -e
+
+            echo "🚀 Starting deployment to production..."
+
+            # Navigate to app directory
+            cd /home/${{ secrets.VPS_USER_PROD }}/commerce-app || {
+              echo "Creating app directory..."
+              mkdir -p /home/${{ secrets.VPS_USER_PROD }}/commerce-app
+              cd /home/${{ secrets.VPS_USER_PROD }}/commerce-app
+            }
+
+            # Pull latest code
+            if [ -d ".git" ]; then
+              echo "📥 Pulling latest changes..."
+              git fetch origin
+              git reset --hard origin/master
+            else
+              echo "📥 Cloning repository..."
+              git clone -b master ${{ github.server_url }}/${{ github.repository }} .
+            fi
+
+            # Set environment variables
+            export IMAGE_NAME=ecommerce-app
+            export IMAGE_TAG=${{ github.sha }}
+            export ENVIRONMENT=production
+
+            # Run deployment script
+            chmod +x scripts/deploy-vps.sh
+            ./scripts/deploy-vps.sh
+          EOF
+
+  notify:
+    needs: [deploy-staging, deploy-production]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Notify deployment status
+        run: |
+          if [ "${{ needs.deploy-staging.result }}" == "success" ] || [ "${{ needs.deploy-production.result }}" == "success" ]; then
+            echo "✅ Deployment successful!"
+          else
+            echo "❌ Deployment failed!"
+            exit 1
+          fi
