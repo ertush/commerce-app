@@ -53,6 +53,20 @@ wait_for_service() {
     fi
 }
 
+check_namespace() {
+    local namespace=$1
+    echo "🔍 Checking namespace: $namespace"
+
+    if kubectl get namespace $namespace >/dev/null 2>&1; then
+        echo "✅ Namespace $namespace exists"
+        return 0
+    else
+        echo "❌ Namespace $namespace does not exist"
+        return 1
+    fi
+}
+
+
 # Install dependencies if needed
 install_dependencies() {
     echo "🔧 Checking dependencies..."
