@@ -155,10 +155,10 @@ setup_environment() {
     cp deployments/*.yaml deployments/${ENVIRONMENT}/
 
     # Update namespace in all files
-    sed -i "s/ecommerce-app/${NAMESPACE}/g" deployments/${ENVIRONMENT}/*.yaml
+    # sed -i "s/ecommerce-app/${NAMESPACE}/g" deployments/${ENVIRONMENT}/*.yaml
 
     # Update image tag in app deployment
-    sed -i "s/${IMAGE_NAME}:latest/${IMAGE_NAME}:${IMAGE_TAG}/g" deployments/${ENVIRONMENT}/app-deployment.yaml
+    # sed -i "s/${IMAGE_NAME}:latest/${IMAGE_NAME}:${IMAGE_TAG}/g" deployments/${ENVIRONMENT}/app-deployment.yaml
 
     # Environment-specific configurations
     case $ENVIRONMENT in
@@ -214,7 +214,7 @@ deploy_to_kubernetes() {
        sleep 5
 
        # Wait for application
-       wait_for_service ${NAMESPACE} ${NAMESPACE}
+       wait_for_service ecommerce-app ${NAMESPACE}
 
        echo "✅ Deployment completed!"
 }
