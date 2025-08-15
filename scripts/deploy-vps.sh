@@ -23,13 +23,34 @@ wait_for_service() {
     local namespace=$2
     local timeout=${3:-300}
 
-    echo "⏳ Waiting for $service to be ready..."
-    kubectl wait --for=condition=available --timeout=${timeout}s deployment/$service -n $namespace || {
-        echo "❌ Timeout waiting for $service"
-        kubectl describe deployment $service -n $namespace
-        kubectl logs -l app=$service -n $namespace --tail=50
+    echo "⏳ Waiting for $service to be ready in namespace $namespace..."
+
+    # First check if the deployment exists
+    if ! kubectl get deployment $service -n $namespace >/dev/null 2>&1; then
+        echo "❌ Deployment $service not found in namespace $namespace"
+        echo "📋 Available deployments:"
+        kubectl get deployments -n $namespace || echo "No deployments found"
         return 1
-    }
+    fi
+
+    # Check deployment status
+    echo "📊 Current deployment status:"
+    kubectl get deployment $service -n $namespace
+
+    # Wait for deployment to be available
+    if kubectl wait --for=condition=available --timeout=${timeout}s deployment/$service -n $namespace; then
+        echo "✅ $service is ready!"
+        return 0
+    else
+        echo "❌ Timeout waiting for $service"
+        echo "📋 Deployment details:"
+        kubectl describe deployment $service -n $namespace
+        echo "📋 Pod status:"
+        kubectl get pods -l app=$service -n $namespace
+        echo "📋 Recent logs:"
+        kubectl logs -l app=$service -n $namespace --tail=50 || echo "No logs available"
+        return 1
+    fi
 }
 
 # Install dependencies if needed
@@ -62,6 +83,18 @@ install_dependencies() {
         sudo mv minikube-linux-amd64 /usr/local/bin/minikube
 
     fi
+}
+
+# Configure_firewall
+configure_firewall(){
+    # Setup firewall
+    echo "🔥 Configuring firewall..."
+    sudo ufw allow ssh
+    sudo ufw allow 80/tcp
+    sudo ufw allow 443/tcp
+    sudo ufw allow 8080/tcp
+    sudo ufw allow 30000:32767/tcp  # NodePort range
+    sudo ufw --force enable
 }
 
 # Setup minikube
@@ -224,6 +257,9 @@ main() {
 
     # Get service info
     get_service_info
+
+    # Configure firewall
+    configure_firewall
 
     # Show status
     show_status
