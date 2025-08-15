@@ -214,7 +214,7 @@ deploy_to_kubernetes() {
        sleep 5
 
        # Wait for application
-       wait_for_service ecommerce-app ${NAMESPACE}
+       wait_for_service ${NAMESPACE} ${NAMESPACE}
 
        echo "✅ Deployment completed!"
 }
