@@ -1,0 +1,108 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecommerce-app
+  namespace: ecommerce-app
+  labels:
+    app: ecommerce-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ecommerce-app
+  template:
+    metadata:
+      labels:
+        app: ecommerce-app
+    spec:
+      containers:
+        - name: ecommerce-app
+          image: ecommerce-app:latest
+          imagePullPolicy: Never # Use local image built by deploy.sh
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: DB_PORT
+            - name: DB_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: POSTGRES_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: POSTGRES_PASSWORD
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: POSTGRES_DB
+            # Add OIDC configuration (you'll need to set these)
+            - name: OIDC_PROVIDER_URL
+              value: "https://accounts.google.com"
+            - name: OIDC_CLIENT_ID
+              value: "your-client-id"
+            - name: OIDC_CLIENT_SECRET
+              value: "your-client-secret"
+            - name: OIDC_REDIRECT_URL
+              value: "http://localhost:8080/api/auth/callback"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:15-alpine
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h postgres -p 5432 -U postgres; do
+                echo "Waiting for PostgreSQL to start..."
+                sleep 2
+              done
+              echo "PostgreSQL is ready!"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecommerce-app
+  namespace: ecommerce-app
+  labels:
+    app: ecommerce-app
+spec:
+  selector:
+    app: ecommerce-app
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  type: NodePort

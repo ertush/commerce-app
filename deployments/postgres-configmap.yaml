@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: ecommerce-app
+data:
+  POSTGRES_DB: ecommerce
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: password
+  DB_HOST: postgres
+  DB_PORT: "5432"
