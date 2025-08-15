@@ -165,25 +165,44 @@ setup_environment() {
 deploy_to_kubernetes() {
     echo "📦 Deploying to Kubernetes..."
 
-    # Apply namespace
-    kubectl apply -f deployments/${ENVIRONMENT}/namespace.yaml
+       # Apply namespace first and verify
+       echo "Creating namespace..."
+       kubectl apply -f deployments/${ENVIRONMENT}/namespace.yaml
 
-    # Apply PostgreSQL
-    echo "Deploying PostgreSQL..."
-    kubectl apply -f deployments/${ENVIRONMENT}/postgres-configmap.yaml
-    kubectl apply -f deployments/${ENVIRONMENT}/postgres-deployment.yaml
+       # Wait a moment for namespace to be ready
+       sleep 2
 
-    # Wait for PostgreSQL
-    wait_for_service postgres ${NAMESPACE}
+       # Verify namespace exists
+       if ! check_namespace ${NAMESPACE}; then
+           echo "❌ Failed to create namespace"
+           return 1
+       fi
 
-    # Apply application
-    echo "Deploying application..."
-    kubectl apply -f deployments/${ENVIRONMENT}/app-deployment.yaml
+       # Apply PostgreSQL configuration
+       echo "Deploying PostgreSQL configuration..."
+       kubectl apply -f deployments/${ENVIRONMENT}/postgres-configmap.yaml
 
-    # Wait for application
-    wait_for_service ecommerce-app ${NAMESPACE}
+       # Apply PostgreSQL deployment
+       echo "Deploying PostgreSQL..."
+       kubectl apply -f deployments/${ENVIRONMENT}/postgres-deployment.yaml
 
-    echo "✅ Deployment completed!"
+       # Wait a moment for deployment to be created
+       sleep 5
+
+       # Wait for PostgreSQL
+       wait_for_service postgres ${NAMESPACE}
+
+       # Apply application deployment
+       echo "Deploying application..."
+       kubectl apply -f deployments/${ENVIRONMENT}/app-deployment.yaml
+
+       # Wait a moment for deployment to be created
+       sleep 5
+
+       # Wait for application
+       wait_for_service ecommerce-app ${NAMESPACE}
+
+       echo "✅ Deployment completed!"
 }
 
 # Get service information
