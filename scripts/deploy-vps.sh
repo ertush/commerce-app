@@ -186,11 +186,16 @@ deploy_to_kubernetes() {
        # Wait a moment for namespace to be ready
        sleep 2
 
+
+
        # Verify namespace exists
        if ! check_namespace ${NAMESPACE}; then
            echo "❌ Failed to create namespace"
            return 1
        fi
+
+       # set namesapce
+       kubectl config set-context --current --namespace=${NAMESPACE}
 
        # Apply PostgreSQL configuration
        echo "Deploying PostgreSQL configuration..."
