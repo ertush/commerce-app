@@ -3,6 +3,7 @@
 # VPS Deployment Script for Commerce App
 set -e
 
+
 # Configuration
 IMAGE_NAME=${IMAGE_NAME:-"ecommerce-app"}
 IMAGE_TAG=${IMAGE_TAG:-"latest"}
@@ -141,12 +142,12 @@ build_image() {
     docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
     docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
 
-    echo "[+] Image Name: ${IMAGE_NAME}:${IMAGE_TAG}"
-    echo "[+] Image Tag: ${IMAGE_TAG}"
-    echo "[+] Image Repository: ${IMAGE_NAME}"
+    # Log Image Name and Image Tag
+    echo "Image Name: ${IMAGE_NAME}:${IMAGE_TAG}"
+    echo "Image Tag: ${IMAGE_TAG}"
 
-    sed -i "s/image: .*/image: ${IMAGE_NAME}:${IMAGE_TAG}/g" deployments/${ENVIRONMENT}/app-deployment.yaml
-
+    # Check built image
+    docker image ls
 
     echo "✅ Image built successfully"
 }
@@ -156,13 +157,18 @@ setup_environment() {
     echo "⚙️  Setting up ${ENVIRONMENT} environment..."
 
     # Create environment-specific directory
-    mkdir -p deployments/${ENVIRONMENT}
+    if [! -d deployments/${ENVIRONMENT}]
+    then
+        mkdir -p deployments/${ENVIRONMENT}
+    fi
 
     # Copy base deployments
     cp deployments/*.yaml deployments/${ENVIRONMENT}/
 
     # Update namespace in all files
-    # sed -i "s/ecommerce-app/${NAMESPACE}/g" deployments/${ENVIRONMENT}/*.yaml
+    sed -i "s/ecommerce-app/${NAMESPACE}/g" deployments/${ENVIRONMENT}/*.yaml
+
+    # sed -i "s/image: .*/image: ${IMAGE_NAME}:${IMAGE_TAG}/g" deployments/${ENVIRONMENT}/app-deployment.yaml
 
     # Update image tag in app deployment
     # sed -i "s/${IMAGE_NAME}:latest/${IMAGE_NAME}:${IMAGE_TAG}/g" deployments/${ENVIRONMENT}/app-deployment.yaml
