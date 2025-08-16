@@ -9,7 +9,7 @@ IMAGE_NAME=${IMAGE_NAME:-"ecommerce-app"}
 IMAGE_TAG=${IMAGE_TAG:-"latest"}
 ENVIRONMENT=${ENVIRONMENT:-"staging"}
 NAMESPACE="ecommerce-app-${ENVIRONMENT}"
-VPS_DOMAIN=${VPS_DOMAIN:-""}
+VPS_DOMAIN=${VPS_DOMAIN:-"ec2-13-58-208-20.us-east-2.compute.amazonaws.com"}
 
 echo "🔧 Environment: ${ENVIRONMENT}"
 echo "🏷️  Image: ${IMAGE_NAME}:${IMAGE_TAG}"
