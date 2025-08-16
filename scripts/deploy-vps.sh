@@ -145,9 +145,8 @@ build_image() {
     echo "[+] Image Tag: ${IMAGE_TAG}"
     echo "[+] Image Repository: ${IMAGE_NAME}"
 
-    sed -i "s|image: .*|image: ${IMAGE_NAME}:${IMAGE_TAG}|g" deployments/${ENVIRONMENT}/app-deployment.yaml
+    sed -i "s/image: .*/image: ${IMAGE_NAME}:${IMAGE_TAG}/g" deployments/${ENVIRONMENT}/app-deployment.yaml
 
-    cat deployments/${ENVIRONMENT}/app-deployment.yaml
 
     echo "✅ Image built successfully"
 }
@@ -192,7 +191,7 @@ deploy_to_kubernetes() {
        kubectl apply -f deployments/${ENVIRONMENT}/namespace.yaml
 
        # Wait a moment for namespace to be ready
-       sleep 2
+       sleep 1
 
 
 
@@ -214,7 +213,7 @@ deploy_to_kubernetes() {
        kubectl apply -f deployments/${ENVIRONMENT}/postgres-deployment.yaml
 
        # Wait a moment for deployment to be created
-       sleep 5
+       sleep 1
 
        # Wait for PostgreSQL
        wait_for_service postgres ${NAMESPACE}
@@ -224,7 +223,7 @@ deploy_to_kubernetes() {
        kubectl apply -f deployments/${ENVIRONMENT}/app-deployment.yaml
 
        # Wait a moment for deployment to be created
-       sleep 5
+       sleep 1
 
        # Wait for application
        wait_for_service ecommerce-app ${NAMESPACE}
@@ -293,7 +292,7 @@ main() {
     setup_minikube
 
     # Build image
-    # build_image
+    build_image
 
     # Setup environment
     setup_environment
