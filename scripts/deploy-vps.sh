@@ -149,7 +149,7 @@ build_image() {
 
     # Build the image
     docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
-    docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
+    docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${NAMESPACE}:latest
 
     # Log Image Name and Image Tag
     echo "Image Name: ${IMAGE_NAME}:${IMAGE_TAG}"
@@ -243,7 +243,7 @@ deploy_to_kubernetes() {
        sleep 7
 
        # Wait for application
-       wait_for_service ecommerce-app ${NAMESPACE}
+       wait_for_service ecommerce-app-staging ${NAMESPACE}
 
        echo "✅ Deployment completed!"
 }
