@@ -141,6 +141,9 @@ build_image() {
     docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
     docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
 
+    sed -i "s|image: .*|image: ${IMAGE_NAME}:${IMAGE_TAG}|g" deployments/${ENVIRONMENT}/app-deployment.yaml
+
+
     echo "✅ Image built successfully"
 }
 
