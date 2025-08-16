@@ -240,10 +240,10 @@ deploy_to_kubernetes() {
        kubectl apply -f deployments/${ENVIRONMENT}/app-deployment.yaml
 
        # Wait a moment for deployment to be created
-       sleep 7
+       sleep 3
 
        # Wait for application
-       wait_for_service ecommerce-app-staging ${NAMESPACE}
+       wait_for_service ${NAMESPACE} ${NAMESPACE}
 
        echo "✅ Deployment completed!"
 }
@@ -256,7 +256,7 @@ get_service_info() {
     MINIKUBE_IP=$(minikube ip)
 
     # Get NodePort
-    NODE_PORT=$(kubectl get service ecommerce-app -n ${NAMESPACE} -o jsonpath='{.spec.ports[0].nodePort}')
+    NODE_PORT=$(kubectl get service ${NAMESPACE} -n ${NAMESPACE} -o jsonpath='{.spec.ports[0].nodePort}')
 
     echo "🎉 Application deployed successfully!"
     echo "📍 Access your application at: http://${MINIKUBE_IP}:${NODE_PORT}"
@@ -290,7 +290,7 @@ cleanup_old_deployments() {
     echo "🧹 Cleaning up old resources..."
 
     # Remove old unused images (keep last 3)
-    docker images ${IMAGE_NAME} --format "table {{.Repository}}\t{{.Tag}}\t{{.ID}}" | tail -n +4 | awk '{print $3}' | head -n -3 | xargs -r docker rmi || true
+    # docker images ${IMAGE_NAME} --format "table {{.Repository}}\t{{.Tag}}\t{{.ID}}" | tail -n +4 | awk '{print $3}' | head -n -3 | xargs -r docker rmi || true
 
     # Clean up docker system
     docker system prune -f || true
