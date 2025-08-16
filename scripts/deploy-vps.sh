@@ -97,7 +97,7 @@ setup_nginx() {
     # Optional: redirect all HTTP (80) traffic to HTTPS
     server {
         listen 80;
-        server_name _;
+        server_name $vps_domain;
         return 301 https://\$host\$request_uri;
     }
 
