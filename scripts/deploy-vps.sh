@@ -123,7 +123,7 @@ EOF
 wait_for_service() {
     local service=$1
     local namespace=$2
-    local timeout=${2:-300}
+    local timeout=${3:-300}
 
     echo "⏳ Waiting for $service to be ready in namespace $namespace..."
 
@@ -341,7 +341,7 @@ deploy_to_kubernetes() {
        kubectl apply -f deployments/${ENVIRONMENT}/app-deployment.yaml
 
        # Wait a moment for deployment to be created
-       sleep 1
+       sleep 3
 
        # Wait for application
        wait_for_service ${NAMESPACE} ${NAMESPACE}
