@@ -92,7 +92,7 @@ jobs:
           tags: ${{ secrets.DOCKER_USERNAME }}/ecommerce-app:latest
 
   deploy-staging:
-    needs: test
+    needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/dev' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
     environment: staging
