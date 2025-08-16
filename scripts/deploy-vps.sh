@@ -102,10 +102,6 @@ EOF
         sudo ln -s /etc/nginx/sites-available/ecommerce-app /etc/nginx/sites-enabled/
     fi
 
-
-
-    sudo systemctl reload nginx
-
     # Installing certbot
     sudo apt-get update
     sudo apt-get install certbot python3-certbot-nginx
