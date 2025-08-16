@@ -357,8 +357,9 @@ get_service_info() {
     NODE_PORT=$(kubectl get service ${NAMESPACE} -n ${NAMESPACE} -o jsonpath='{.spec.ports[0].nodePort}')
 
     echo "🎉 Application deployed successfully!"
-    echo "📍 Access your application at: http://${MINIKUBE_IP}:${NODE_PORT}"
-    echo "🔍 Health check: http://${MINIKUBE_IP}:${NODE_PORT}/health"
+    echo "📍 Access your application at (local IP): http://${MINIKUBE_IP}:${NODE_PORT}/"
+    echo "📍 Access your application at (public domain): https://${VPS_DOMAIN}/"
+    echo "🔍 Health check: http://${MINIKUBE_IP}:${NODE_PORT}/health or https://${VPS_DOMAIN}/health"
 
     # Save service info to file
     cat > service-info.txt << EOF
