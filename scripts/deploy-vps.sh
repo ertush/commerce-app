@@ -107,7 +107,13 @@ EOF
     sudo apt-get install -y certbot python3-certbot-nginx
 
     # Request certbot
-    sudo certbot --nginx -d $vps_domain
+    sudo certbot certonly --standalone \
+      -d $vps_domain \
+      -d www.$vps_domain \
+      --non-interactive \
+      --agree-tos \
+      --email erotush77@gmil.com \
+      --no-eff-email
 
     # Reload nginx
     sudo nginx -t
