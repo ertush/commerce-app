@@ -96,7 +96,7 @@ setup_nginx() {
 
 EOF
 
-    if [ ! -e /etc/nginx/sites-enabled/ecommerce-app]
+    if [ ! -e /etc/nginx/sites-enabled/ecommerce-app ]
     then
         # Delete to create a new config for nginx
         sudo ln -s /etc/nginx/sites-available/ecommerce-app /etc/nginx/sites-enabled/
