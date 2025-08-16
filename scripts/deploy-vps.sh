@@ -95,11 +95,11 @@ setup_nginx() {
     }
 
     # Optional: redirect all HTTP (80) traffic to HTTPS
-    server {
-        listen 80;
-        server_name $vps_domain;
-        return 301 https://\$host\$request_uri;
-    }
+    # server {
+    #     listen 80;
+    #     server_name $vps_domain;
+    #     return 301 https://\$host\$request_uri;
+    # }
 
 EOF
 
@@ -112,15 +112,6 @@ EOF
     # Installing certbot
     sudo apt-get update
     sudo apt-get install -y certbot python3-certbot-nginx
-
-    # Request certbot
-    # sudo certbot certonly --standalone \
-    #   -d $vps_domain \
-    #   -d www.$vps_domain \
-    #   --non-interactive \
-    #   --agree-tos \
-    #   --email erotush77@gmil.com \
-    #   --no-eff-email
 
     # Reload nginx
     sudo nginx -t
@@ -293,11 +284,6 @@ setup_environment() {
     # Update namespace in all files
     sed -i "s/ecommerce-app/${NAMESPACE}/g" deployments/${ENVIRONMENT}/*.yaml
 
-    # sed -i "s/image: .*/image: ${IMAGE_NAME}:${IMAGE_TAG}/g" deployments/${ENVIRONMENT}/app-deployment.yaml
-
-    # Update image tag in app deployment
-    # sed -i "s/${IMAGE_NAME}:latest/${IMAGE_NAME}:${IMAGE_TAG}/g" deployments/${ENVIRONMENT}/app-deployment.yaml
-
     # Environment-specific configurations
     case $ENVIRONMENT in
         "production")
@@ -323,8 +309,6 @@ deploy_to_kubernetes() {
 
        # Wait a moment for namespace to be ready
        sleep 1
-
-
 
        # Verify namespace exists
        if ! check_namespace ${NAMESPACE}; then
@@ -402,8 +386,6 @@ show_status() {
 # Cleanup old deployments
 cleanup_old_deployments() {
     echo "🧹 Cleaning up old resources..."
-
-    # Remove old unused images (keep last 3)
 
     # Clean up docker system
     docker system prune -f || true
