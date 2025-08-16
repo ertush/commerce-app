@@ -45,10 +45,9 @@ setup_nginx() {
     if [-e /etc/nginx/sites-enabled/ecommerce-app]
     then
         # Delete to create a new config for nginx
-        sudo rm /etc/nginx/sites-enabled/ecommerce-app
+        sudo rm /etc/nginx/sites-available/ecommerce-app
         sudo systemctl reload nginx
     fi
-
 
 
     # check VPS_DOMAIN
@@ -97,10 +96,15 @@ setup_nginx() {
 
 EOF
 
-    sudo ln -s /etc/nginx/sites-available/ecommerce-app /etc/nginx/sites-enabled/
+    if [ ! -e /etc/nginx/sites-enabled/ecommerce-app]
+    then
+        # Delete to create a new config for nginx
+        sudo ln -s /etc/nginx/sites-available/ecommerce-app /etc/nginx/sites-enabled/
+    fi
+
+
     sudo nginx -t
     sudo systemctl reload nginx
-
 
     # Installing certbot
     sudo apt-get update
