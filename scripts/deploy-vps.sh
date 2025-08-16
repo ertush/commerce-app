@@ -9,6 +9,7 @@ IMAGE_NAME=${IMAGE_NAME:-"ecommerce-app"}
 IMAGE_TAG=${IMAGE_TAG:-"latest"}
 ENVIRONMENT=${ENVIRONMENT:-"staging"}
 NAMESPACE="ecommerce-app-${ENVIRONMENT}"
+VPS_DOMAIN=${VPS_DOMAIN:-""}
 
 echo "🔧 Environment: ${ENVIRONMENT}"
 echo "🏷️  Image: ${IMAGE_NAME}:${IMAGE_TAG}"
@@ -16,6 +17,87 @@ echo "🏷️  Image: ${IMAGE_NAME}:${IMAGE_TAG}"
 # Function to check if a command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
+}
+
+set_up_nginx() {
+    local_ip_addr=$1
+    vps_domain=$2
+
+    echo "🔧 Setting up NGINX..."
+
+
+
+    # Install NGINX
+    if ! command_exists nginx; then
+        echo "[+] Installing NGINX..."
+        sudo apt-get update
+        sudo apt-get install -y nginx
+    else
+        echo "[+] NGINX is already set up."
+        exit 0
+    fi
+
+    # check VPS_DOMAIN
+    if [ -z "$vps_domain" ]; then
+        echo "Error: VPS_DOMAIN is not set."
+        exit 1
+    fi
+
+    if [-e /etc/nginx/sites-available/ecommerce-app]
+    then
+        echo "[+] NGINX configuration already exists."
+    else
+        echo "[+] Creating NGINX configuration..."
+
+        cat <<EOF | sudo tee /etc/nginx/sites-available/ecommerce-app
+        server {
+            listen 80;
+            server_name $vps_domain;
+
+            location / {
+                proxy_pass $local_ip_addr;  # Your Minikube NodePort
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+        }
+
+        server {
+            listen 443 ssl;
+            server_name $vps_domain;
+
+            ssl_certificate /etc/letsencrypt/live/$vps_domain/fullchain.pem;
+            ssl_certificate_key /etc/letsencrypt/live/$vps_domain/privkey.pem;
+
+            location / {
+                proxy_pass $local_ip_addr;  # Your Minikube NodePort
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+        }
+
+EOF
+
+        sudo ln -s /etc/nginx/sites-available/ecommerce-app /etc/nginx/sites-enabled/
+        sudo nginx -t
+        sudo systemctl reload nginx
+    fi
+
+    # Installing certbot
+    sudo apt-get update
+    sudo apt-get install certbot python3-certbot-nginx
+
+    # Request certbot
+    sudo certbot --nginx -d $vps_domain
+
+    # Reload nginx
+    sudo systemctl reload nginx
+
+    echo "✅ Certbot setup successful!"
+
 }
 
 # Function to wait for service to be ready
@@ -320,13 +402,16 @@ main() {
     get_service_info
 
     # Configure firewall
-    configure_firewall
+    configure_firewall http://${MINIKUBE_IP}:${NODE_PORT} ${VPS_DOMAIN}
 
     # Show status
     show_status
 
     # Cleanup
     cleanup_old_deployments
+
+    # Set Up nginx
+    setup_nginx
 
     echo "🎉 Deployment completed successfully!"
 }
