@@ -9,7 +9,7 @@ IMAGE_NAME=${IMAGE_NAME:-"ecommerce-app"}
 IMAGE_TAG=${IMAGE_TAG:-"latest"}
 ENVIRONMENT=${ENVIRONMENT:-"staging"}
 NAMESPACE="ecommerce-app-${ENVIRONMENT}"
-VPS_DOMAIN=${VPS_DOMAIN:-"ec2-13-58-208-20.us-east-2.compute.amazonaws.com"}
+VPS_DOMAIN=${VPS_DOMAIN:-""}
 
 echo "🔧 Environment: ${ENVIRONMENT}"
 echo "🏷️  Image: ${IMAGE_NAME}:${IMAGE_TAG}"
@@ -351,15 +351,14 @@ get_service_info() {
     echo "🌐 Getting service information..."
 
     # Get minikube IP
-    MINIKUBE_IP=$(minikube ip)
+    export MINIKUBE_IP=$(minikube ip)
 
     # Get NodePort
-    NODE_PORT=$(kubectl get service ${NAMESPACE} -n ${NAMESPACE} -o jsonpath='{.spec.ports[0].nodePort}')
+    export NODE_PORT=$(kubectl get service ${NAMESPACE} -n ${NAMESPACE} -o jsonpath='{.spec.ports[0].nodePort}')
 
     echo "🎉 Application deployed successfully!"
     echo "📍 Access your application at (local IP): http://${MINIKUBE_IP}:${NODE_PORT}/"
-    echo "📍 Access your application at (public domain): https://${VPS_DOMAIN}/"
-    echo "🔍 Health check: http://${MINIKUBE_IP}:${NODE_PORT}/health or https://${VPS_DOMAIN}/health"
+    echo "🔍 Health check: http://${MINIKUBE_IP}:${NODE_PORT}/health"
 
     # Save service info to file
     cat > service-info.txt << EOF
@@ -419,7 +418,7 @@ main() {
     get_service_info
 
     # Configure firewall
-    configure_firewall http://${MINIKUBE_IP}:${NODE_PORT} ${VPS_DOMAIN}
+    configure_firewall
 
     # Show status
     show_status
@@ -428,7 +427,7 @@ main() {
     cleanup_old_deployments
 
     # Set Up nginx
-    setup_nginx
+    setup_nginx http://${MINIKUBE_IP}:${NODE_PORT} ${VPS_DOMAIN}
 
     echo "🎉 Deployment completed successfully!"
 }
