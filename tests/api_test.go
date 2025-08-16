@@ -137,107 +137,107 @@ func TestCategoryRoutes(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	// t.Run("CreateSubCategory", func(t *testing.T) {
+	t.Run("CreateSubCategory", func(t *testing.T) {
 
-	// 	var categoryRepo *database.CategoryRepository
-	// 	categoryRepo = &database.CategoryRepository{}
+		var categoryRepo *database.CategoryRepository
+		categoryRepo = &database.CategoryRepository{}
 
-	// 	parentCategory := CreateTestCategory(t, ts, nil)
+		parentCategory := CreateTestCategory(t, ts, nil)
 
-	// 	categoryData := map[string]string{
-	// 		"name":        "Test Subcategory",
-	// 		"description": "Test Subcategory Description",
-	// 		"parent_id":   parentCategory.ID.String(),
-	// 	}
+		categoryData := map[string]string{
+			"name":        "Test Subcategory",
+			"description": "Test Subcategory Description",
+			"parent_id":   parentCategory.ID.String(),
+		}
 
-	// 	resp := MakeRequest(t, ts, "POST", "/api/categories", categoryData, nil)
-	// 	defer resp.Body.Close()
+		resp := MakeRequest(t, ts, "POST", "/api/categories", categoryData, nil)
+		defer resp.Body.Close()
 
-	// 	assert.Equal(t, http.StatusCreated, resp.StatusCode)
+		assert.Equal(t, http.StatusCreated, resp.StatusCode)
 
-	// 	var category models.Category
-	// 	err := json.NewDecoder(resp.Body).Decode(&category)
-	// 	assert.NoError(t, err)
+		var category models.Category
+		err := json.NewDecoder(resp.Body).Decode(&category)
+		assert.NoError(t, err)
 
-	// 	assert.Equal(t, "Test Subcategory", category.Name)
-	// 	assert.Equal(t, 1, category.Level)
-	// 	assert.Equal(t, parentCategory.Path+"/Test Subcategory", category.Path)
+		assert.Equal(t, "Test Subcategory", category.Name)
+		assert.Equal(t, 1, category.Level)
+		assert.Equal(t, parentCategory.Path+"/Test Subcategory", category.Path)
 
-	// 	//Clean up the created parent category
-	// 	err = categoryRepo.Delete(parentCategory.ID, 0)
-	// 	assert.NoError(t, err)
+		//Clean up the created parent category
+		err = categoryRepo.Delete(parentCategory.ID, 0)
+		assert.NoError(t, err)
 
-	// 	//Clean up the created subcategory
-	// 	err = categoryRepo.Delete(category.ID, 1)
-	// 	assert.NoError(t, err)
-	// })
+		//Clean up the created subcategory
+		err = categoryRepo.Delete(category.ID, 1)
+		assert.NoError(t, err)
+	})
 
-	// t.Run("GetAllCategories", func(t *testing.T) {
+	t.Run("GetAllCategories", func(t *testing.T) {
 
-	// 	var categoryRepo *database.CategoryRepository
-	// 	categoryRepo = &database.CategoryRepository{}
+		var categoryRepo *database.CategoryRepository
+		categoryRepo = &database.CategoryRepository{}
 
-	// 	createdCategory := CreateTestCategory(t, ts, nil)
+		createdCategory := CreateTestCategory(t, ts, nil)
 
-	// 	resp := MakeRequest(t, ts, "GET", "/api/categories", nil, nil)
-	// 	defer resp.Body.Close()
+		resp := MakeRequest(t, ts, "GET", "/api/categories", nil, nil)
+		defer resp.Body.Close()
 
-	// 	assert.Equal(t, http.StatusOK, resp.StatusCode)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	// 	var categories []models.Category
-	// 	err := json.NewDecoder(resp.Body).Decode(&categories)
-	// 	assert.NoError(t, err)
+		var categories []models.Category
+		err := json.NewDecoder(resp.Body).Decode(&categories)
+		assert.NoError(t, err)
 
-	// 	assert.Greater(t, len(categories), 0)
+		assert.Greater(t, len(categories), 0)
 
-	// 	//Clean up the created category
-	// 	err = categoryRepo.Delete(createdCategory.ID, 0)
-	// 	assert.NoError(t, err)
-	// })
+		//Clean up the created category
+		err = categoryRepo.Delete(createdCategory.ID, 0)
+		assert.NoError(t, err)
+	})
 
-	// t.Run("GetCategory", func(t *testing.T) {
-	// 	category := CreateTestCategory(t, ts, nil)
+	t.Run("GetCategory", func(t *testing.T) {
+		category := CreateTestCategory(t, ts, nil)
 
-	// 	resp := MakeRequest(t, ts, "GET", "/api/categories/"+category.ID.String(), nil, nil)
-	// 	defer resp.Body.Close()
+		resp := MakeRequest(t, ts, "GET", "/api/categories/"+category.ID.String(), nil, nil)
+		defer resp.Body.Close()
 
-	// 	assert.Equal(t, http.StatusOK, resp.StatusCode)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	// 	var retrievedCategory models.Category
-	// 	err := json.NewDecoder(resp.Body).Decode(&retrievedCategory)
-	// 	assert.NoError(t, err)
+		var retrievedCategory models.Category
+		err := json.NewDecoder(resp.Body).Decode(&retrievedCategory)
+		assert.NoError(t, err)
 
-	// 	assert.Equal(t, category.ID, retrievedCategory.ID)
-	// 	assert.Equal(t, category.Name, retrievedCategory.Name)
-	// })
+		assert.Equal(t, category.ID, retrievedCategory.ID)
+		assert.Equal(t, category.Name, retrievedCategory.Name)
+	})
 
-	// t.Run("GetCategoryChildren", func(t *testing.T) {
+	t.Run("GetCategoryChildren", func(t *testing.T) {
 
-	// 	var categoryRepo *database.CategoryRepository
-	// 	categoryRepo = &database.CategoryRepository{}
+		var categoryRepo *database.CategoryRepository
+		categoryRepo = &database.CategoryRepository{}
 
-	// 	parentCategory := CreateTestCategory(t, ts, nil)
-	// 	childCategory := CreateTestCategory(t, ts, &parentCategory.ID)
+		parentCategory := CreateTestCategory(t, ts, nil)
+		childCategory := CreateTestCategory(t, ts, &parentCategory.ID)
 
-	// 	resp := MakeRequest(t, ts, "GET", "/api/categories/"+parentCategory.ID.String()+"/children", nil, nil)
-	// 	defer resp.Body.Close()
+		resp := MakeRequest(t, ts, "GET", "/api/categories/"+parentCategory.ID.String()+"/children", nil, nil)
+		defer resp.Body.Close()
 
-	// 	assert.Equal(t, http.StatusOK, resp.StatusCode)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	// 	var children []models.Category
-	// 	err := json.NewDecoder(resp.Body).Decode(&children)
-	// 	assert.NoError(t, err)
+		var children []models.Category
+		err := json.NewDecoder(resp.Body).Decode(&children)
+		assert.NoError(t, err)
 
-	// 	assert.Greater(t, len(children), 0)
+		assert.Greater(t, len(children), 0)
 
-	// 	// Clean Up Parent Category
-	// 	err = categoryRepo.Delete(parentCategory.ID, 0)
-	// 	assert.NoError(t, err)
+		// Clean Up Parent Category
+		err = categoryRepo.Delete(parentCategory.ID, 0)
+		assert.NoError(t, err)
 
-	// 	// Clean Up Child Category
-	// 	err = categoryRepo.Delete(childCategory.ID, 1)
-	// 	assert.NoError(t, err)
-	// })
+		// Clean Up Child Category
+		err = categoryRepo.Delete(childCategory.ID, 1)
+		assert.NoError(t, err)
+	})
 }
 
 // TestProductRoutes tests all product-related endpoints
