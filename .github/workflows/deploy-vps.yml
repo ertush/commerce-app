@@ -70,7 +70,7 @@ jobs:
   build:
     needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/dev'
 
     steps:
       - uses: actions/checkout@v4
@@ -145,7 +145,7 @@ jobs:
           EOF
 
   deploy-production:
-    needs: test
+    needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
     environment: production
