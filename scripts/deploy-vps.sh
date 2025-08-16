@@ -20,22 +20,36 @@ command_exists() {
 }
 
 setup_nginx() {
-    local_ip_addr=$1
+    localhost=$1
     vps_domain=$2
 
     echo "🔧 Setting up NGINX..."
-
-
 
     # Install NGINX
     if ! command_exists nginx; then
         echo "[+] Installing NGINX..."
         sudo apt-get update
         sudo apt-get install -y nginx
-    else
-        echo "[+] NGINX is already set up."
-        exit 0
+
+   fi
+
+
+
+    if [-e /etc/nginx/sites-available/ecommerce-app]
+    then
+        # Delete to create a new config for nginx
+        sudo rm /etc/nginx/sites-available/ecommerce-app
+        sudo systemctl reload nginx
     fi
+
+    if [-e /etc/nginx/sites-enabled/ecommerce-app]
+    then
+        # Delete to create a new config for nginx
+        sudo rm /etc/nginx/sites-enabled/ecommerce-app
+        sudo systemctl reload nginx
+    fi
+
+
 
     # check VPS_DOMAIN
     if [ -z "$vps_domain" ]; then
@@ -43,48 +57,50 @@ setup_nginx() {
         exit 1
     fi
 
-    if [-e /etc/nginx/sites-available/ecommerce-app]
-    then
-        echo "[+] NGINX configuration already exists."
-    else
-        echo "[+] Creating NGINX configuration..."
+    # check localhost
+    if [ -z "$localhost" ]; then
+        echo "Error: localhost is not set."
+        exit 1
+    fi
 
-        cat <<EOF | sudo tee /etc/nginx/sites-available/ecommerce-app
-        server {
-            listen 80;
-            server_name $vps_domain;
+    echo "[+] Creating NGINX configuration..."
 
-            location / {
-                proxy_pass $local_ip_addr;  # Your Minikube NodePort
-                proxy_set_header Host $host;
-                proxy_set_header X-Real-IP $remote_addr;
-                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_set_header X-Forwarded-Proto $scheme;
-            }
+    cat <<EOF | sudo tee /etc/nginx/sites-available/ecommerce-app
+    server {
+        listen 80;
+        server_name $vps_domain;
+
+        location / {
+            proxy_pass $localhost;  # Your Minikube NodePort
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
         }
+    }
 
-        server {
-            listen 443 ssl;
-            server_name $vps_domain;
+    server {
+        listen 443 ssl;
+        server_name $vps_domain;
 
-            ssl_certificate /etc/letsencrypt/live/$vps_domain/fullchain.pem;
-            ssl_certificate_key /etc/letsencrypt/live/$vps_domain/privkey.pem;
+        ssl_certificate /etc/letsencrypt/live/$vps_domain/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/$vps_domain/privkey.pem;
 
-            location / {
-                proxy_pass $local_ip_addr;  # Your Minikube NodePort
-                proxy_set_header Host $host;
-                proxy_set_header X-Real-IP $remote_addr;
-                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_set_header X-Forwarded-Proto $scheme;
-            }
+        location / {
+            proxy_pass $localhost;  # Your Minikube NodePort
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
         }
+    }
 
 EOF
 
-        sudo ln -s /etc/nginx/sites-available/ecommerce-app /etc/nginx/sites-enabled/
-        sudo nginx -t
-        sudo systemctl reload nginx
-    fi
+    sudo ln -s /etc/nginx/sites-available/ecommerce-app /etc/nginx/sites-enabled/
+    sudo nginx -t
+    sudo systemctl reload nginx
+
 
     # Installing certbot
     sudo apt-get update
@@ -217,8 +233,8 @@ setup_minikube() {
 build_image() {
     echo "🔨 Building Docker image..."
 
-    # Set docker environment to use minikube's docker daemon
-    # eval $(minikube docker-env)
+    # stop running process for app
+    docker stop $(docker ps -q --filter "name=ecommerce-app") || true
 
     ecommerce_image_id=$(docker image ls | grep ecommerce-app | tail -n 1 | awk '{print $3}')
 
