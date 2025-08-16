@@ -82,8 +82,8 @@ setup_nginx() {
         listen 443 ssl;
         server_name $vps_domain;
 
-        ssl_certificate /etc/letsencrypt/live/$vps_domain/fullchain.pem;
-        ssl_certificate_key /etc/letsencrypt/live/$vps_domain/privkey.pem;
+        ssl_certificate /etc/ssl/selfsigned/selfsigned.crt;
+        ssl_certificate_key /etc/ssl/selfsigned/selfsigned.key;
 
         location / {
             proxy_pass $localhost;  # Your Minikube NodePort
@@ -92,6 +92,13 @@ setup_nginx() {
             proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto \$scheme;
         }
+    }
+
+    # Optional: redirect all HTTP (80) traffic to HTTPS
+    server {
+        listen 80;
+        server_name _;
+        return 301 https://\$host\$request_uri;
     }
 
 EOF
