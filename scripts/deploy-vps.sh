@@ -288,7 +288,7 @@ main() {
     setup_minikube
 
     # Build image
-    build_image
+    # build_image
 
     # Setup environment
     setup_environment

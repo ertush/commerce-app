@@ -39,7 +39,7 @@ spec:
       containers:
         - name: ecommerce-app
           image: ecommerce-app:latest
-          imagePullPolicy: Never # Use local image built by deploy.sh
+          imagePullPolicy: IfNotPresent # Use local image built by deploy.sh
           ports:
             - containerPort: 8080
           env:
