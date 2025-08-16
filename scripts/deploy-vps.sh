@@ -115,7 +115,9 @@ EOF
 
     # Reload nginx
     sudo nginx -t
-    sudo systemctl reload nginx
+    echo "✅ Nginx configuration tested successfully!"
+    sudo systemctl restart nginx
+    echo "✅ Nginx restarted successfully!"
 
     echo "✅ Certbot setup successful!"
 
