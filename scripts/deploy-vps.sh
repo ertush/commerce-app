@@ -166,7 +166,7 @@ setup_environment() {
     cp deployments/*.yaml deployments/${ENVIRONMENT}/
 
     # Update namespace in all files
-    sed -i "s/ecommerce-app/${NAMESPACE}/g" deployments/${ENVIRONMENT}/*.yaml
+    # sed -i "s/ecommerce-app/${NAMESPACE}/g" deployments/${ENVIRONMENT}/*.yaml
 
     # sed -i "s/image: .*/image: ${IMAGE_NAME}:${IMAGE_TAG}/g" deployments/${ENVIRONMENT}/app-deployment.yaml
 
