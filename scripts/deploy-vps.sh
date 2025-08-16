@@ -19,7 +19,7 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
-set_up_nginx() {
+setup_nginx() {
     local_ip_addr=$1
     vps_domain=$2
 
