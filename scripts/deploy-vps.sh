@@ -103,7 +103,7 @@ EOF
     fi
 
 
-    sudo nginx -t
+
     sudo systemctl reload nginx
 
     # Installing certbot
@@ -114,6 +114,7 @@ EOF
     sudo certbot --nginx -d $vps_domain
 
     # Reload nginx
+    sudo nginx -t
     sudo systemctl reload nginx
 
     echo "✅ Certbot setup successful!"
