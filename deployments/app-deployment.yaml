@@ -86,11 +86,11 @@ spec:
                 secretKeyRef:
                   name: ecommerce-app-secrets
                   key: OIDC_CLIENT_SECRET
-            - name: OIDC_REDIRECT_URL
+            - name: OIDC_REDIRECT_URI
               valueFrom:
                 secretKeyRef:
                   name: ecommerce-app-secrets
-                  key: OIDC_REDIRECT_URL
+                  key: OIDC_REDIRECT_URI
             # Africa's Talking Environment Variables
             - name: AFRICA_TALKING_API_KEY
               valueFrom:
