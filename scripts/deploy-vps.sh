@@ -136,7 +136,7 @@ build_image() {
     echo "🔨 Building Docker image..."
 
     # Set docker environment to use minikube's docker daemon
-    eval $(minikube docker-env)
+    # eval $(minikube docker-env)
 
     ecommerce_image_id=$(docker image ls | grep ecommerce-app | tail -n 1 | awk '{print $3}')
 
@@ -282,7 +282,7 @@ show_status() {
     kubectl get services -n ${NAMESPACE}
     echo ""
     echo "📋 Recent Events:"
-    kubectl get events -n ${NAMESPACE} --sort-by=.metadata.creationTimestamp --tail=10
+    kubectl get events -n ${NAMESPACE} --sort-by=.metadata.creationTimestamp
 }
 
 # Cleanup old deployments
@@ -290,7 +290,6 @@ cleanup_old_deployments() {
     echo "🧹 Cleaning up old resources..."
 
     # Remove old unused images (keep last 3)
-    # docker images ${IMAGE_NAME} --format "table {{.Repository}}\t{{.Tag}}\t{{.ID}}" | tail -n +4 | awk '{print $3}' | head -n -3 | xargs -r docker rmi || true
 
     # Clean up docker system
     docker system prune -f || true
