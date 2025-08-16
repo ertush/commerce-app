@@ -165,8 +165,10 @@ setup_environment() {
     echo "⚙️  Setting up ${ENVIRONMENT} environment..."
 
     # Create environment-specific directory
-    if [! -d deployments/${ENVIRONMENT}]
+    if [ -d deployments/${ENVIRONMENT}]
     then
+        echo "💡 deployments/${ENVIRONMENT} directory exists"
+    else
         mkdir -p deployments/${ENVIRONMENT}
     fi
 
