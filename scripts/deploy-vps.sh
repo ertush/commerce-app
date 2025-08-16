@@ -143,6 +143,7 @@ build_image() {
     #check previous images and delete if they exist
     if [ $ecommerce_image_id ]
     then
+        echo "💡 Deleting previous image..."
         docker image rm -f $ecommerce_image_id | tail -n 1
     fi
 
@@ -162,7 +163,7 @@ build_image() {
 
 # Setup environment-specific configuration
 setup_environment() {
-    echo "⚙️  Setting up ${ENVIRONMENT} environment..."
+    echo "⚙️ Setting up ${ENVIRONMENT} environment..."
 
     # Create environment-specific directory
     if [ -d deployments/${ENVIRONMENT}]
@@ -242,7 +243,7 @@ deploy_to_kubernetes() {
        sleep 7
 
        # Wait for application
-       wait_for_service ecommerce-app-staging ${NAMESPACE}
+       wait_for_service ecommerce-app ${NAMESPACE}
 
        echo "✅ Deployment completed!"
 }
