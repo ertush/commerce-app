@@ -138,6 +138,7 @@ jobs:
             export IMAGE_NAME=ecommerce-app
             export IMAGE_TAG=${{ github.sha }}
             export ENVIRONMENT=staging
+            export VPS_DOMAIN=${{ secrets.VPS_DOMAIN }}
 
             # Run deployment script
             chmod +x scripts/deploy-vps.sh
@@ -191,6 +192,7 @@ jobs:
             export IMAGE_NAME=ecommerce-app
             export IMAGE_TAG=${{ github.sha }}
             export ENVIRONMENT=production
+            export VPS_DOMAIN=${{ secrets.VPS_DOMAIN }}
 
             # Run deployment script
             chmod +x scripts/deploy-vps.sh
