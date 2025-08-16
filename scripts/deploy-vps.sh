@@ -138,6 +138,14 @@ build_image() {
     # Set docker environment to use minikube's docker daemon
     eval $(minikube docker-env)
 
+    ecommerce_image_id=$(docker image ls | grep ecommerce-app | tail -n 1 | awk '{print $3}')
+
+    #check previous images and delete if they exist
+    if [ $ecommerce_image_id ]
+    then
+        docker image rm -f $ecommerce_image_id | tail -n 1
+    fi
+
     # Build the image
     docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
     docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
@@ -229,7 +237,7 @@ deploy_to_kubernetes() {
        kubectl apply -f deployments/${ENVIRONMENT}/app-deployment.yaml
 
        # Wait a moment for deployment to be created
-       sleep 1
+       sleep 7
 
        # Wait for application
        wait_for_service ecommerce-app-staging ${NAMESPACE}
