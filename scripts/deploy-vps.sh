@@ -82,8 +82,8 @@ setup_nginx() {
         listen 443 ssl;
         server_name $vps_domain;
 
-        ssl_certificate /etc/letsencrypt/live/ecommerce-app.eric-mutua.site/fullchain.pem
-        ssl_certificate_key /etc/letsencrypt/live/ecommerce-app.eric-mutua.site/privkey.pem
+        ssl_certificate /etc/letsencrypt/live/ecommerce-app.eric-mutua.site/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/ecommerce-app.eric-mutua.site/privkey.pem;
 
         location / {
             proxy_pass $localhost;  # Your Minikube NodePort
