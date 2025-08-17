@@ -1,4 +1,6 @@
-# Commerce Web Service
+# E-Commerce Web Service
+
+![Commerce API Logo](https://img.freepik.com/premium-vector/ecommerce-logo-design_624194-152.jpg?w=200)
 
 A modern e-commerce application built with Go, featuring a REST API, PostgreSQL database, Kubernetes deployment, and OpenID Connect authentication.
 

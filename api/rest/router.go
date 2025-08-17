@@ -20,6 +20,7 @@ func Router() http.Handler {
 	customerHandler := handlers.NewCustomerHandler()
 	productHandler := handlers.NewProductHandler()
 	orderHandler := handlers.NewOrderHandler()
+	rootHandler := handlers.NewRootHandler()
 
 	// Initialize auth handler
 	authHandler, err := handlers.NewAuthHandler()
@@ -30,6 +31,19 @@ func Router() http.Handler {
 
 	// Initialize OIDC middleware
 	var oidcMiddleware *auth.OIDCMiddleware
+	if authHandler != nil {
+		jwtSecret := []byte(getEnv("JWT_SECRET", "secret"))
+		oidcMiddleware = auth.NewOIDCMiddleware(authHandler.GetOIDCProvider(), jwtSecret)
+	}
+
+	// Initialize auth handler
+	authHandler, err = handlers.NewAuthHandler()
+	if err != nil {
+		log.Printf("Warning: Failed to initialize OIDC auth handler: %v", err)
+		authHandler = nil
+	}
+
+	// Initialize OIDC middleware
 	if authHandler != nil {
 		jwtSecret := []byte(getEnv("JWT_SECRET", "secret"))
 		oidcMiddleware = auth.NewOIDCMiddleware(authHandler.GetOIDCProvider(), jwtSecret)
@@ -57,6 +71,9 @@ func Router() http.Handler {
 	if oidcMiddleware != nil {
 		protectedUserInfo.Use(oidcMiddleware.RequireAuth)
 	}
+
+	// Initialize root handler
+	r.HandleFunc("/", rootHandler.ServeHTTP)
 
 	// Product routes
 	r.HandleFunc("/api/products", productHandler.CreateProduct).Methods("POST")
