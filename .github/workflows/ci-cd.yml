@@ -66,25 +66,25 @@ jobs:
           DB_USER: postgres
           DB_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           DB_NAME: ecommerce_test
-        run: go test ./tests -v --run '(TestCustomerRoutes|TestCategoryRoutes|TestProductRoutes|TestOrderRoutes)'
+        run: go test ./tests -v --run '(TestCustomerRoutes|TestCategoryRoutes|TestProductRoutes)'
 
-      # - name: Run Auth Tests
-      #   env:
-      #     DB_HOST: localhost
-      #     DB_PORT: 5432
-      #     DB_USER: postgres
-      #     DB_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-      #     DB_NAME: ecommerce_test
-      #   run: go test ./tests -v --run '(TestValidateToken|TestGenerateToken|TestExtractTokenFromHeader|TestExtractTokenFromHeader_NoHeader|TestExtractTokenFromHeader_InvalidFormat)'
+      - name: Run Auth Tests
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USER: postgres
+          DB_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          DB_NAME: ecommerce_test
+        run: go test ./tests -v --run '(TestValidateToken|TestGenerateToken|TestExtractTokenFromHeader|TestExtractTokenFromHeader_NoHeader|TestExtractTokenFromHeader_InvalidFormat)'
 
-      # - name: Run OIDC Tests
-      #   env:
-      #     DB_HOST: localhost
-      #     DB_PORT: 5432
-      #     DB_USER: postgres
-      #     DB_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-      #     DB_NAME: ecommerce_test
-      #   run: go test ./tests -v --run '(TestOIDCConfig|TestRandomStringGeneration|TestOIDCClaims|TestUserInfo)'
+      - name: Run OIDC Tests
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USER: postgres
+          DB_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          DB_NAME: ecommerce_test
+        run: go test ./tests -v --run '(TestOIDCConfig|TestRandomStringGeneration|TestOIDCClaims|TestUserInfo)'
 
   build:
     needs: test
