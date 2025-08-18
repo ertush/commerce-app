@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"commerce-app/api/rest"
+	"commerce-app/internal/auth"
 	"commerce-app/internal/database"
 	"commerce-app/internal/models"
 
@@ -60,6 +61,14 @@ func SetupTestServer(t *testing.T) *TestServer {
 	}
 }
 
+func (ts *TestServer) GetTestCustomer(t *testing.T) (*models.Customer, string) {
+
+	var customerData = GetTestUserDetails()
+	var TestCustomer, token = CreateTestCustomer(t, ts, customerData)
+
+	return TestCustomer, token
+}
+
 // CleanupTestServer cleans up the test server and database
 func (ts *TestServer) CleanupTestServer(t *testing.T) {
 
@@ -78,12 +87,13 @@ func getRandomPhoneNumber() string {
 	return fmt.Sprintf("%d", rand.Intn(9999999999))
 }
 
-func GetTestUserDetails() map[string]string {
+func GetTestUserDetails() models.Customer {
 	// Create test user
-	userDetails := map[string]string{
-		"email": getRandomEmail(),
-		"name":  "Test User",
-		"phone": getRandomPhoneNumber(),
+	userDetails := models.Customer{
+		ID:    uuid.New(),
+		Email: getRandomEmail(),
+		Name:  "Test User",
+		Phone: getRandomPhoneNumber(),
 	}
 
 	return userDetails
@@ -91,17 +101,17 @@ func GetTestUserDetails() map[string]string {
 }
 
 // CreateTestCustomer creates a test customer and returns the customer data
-func CreateTestCustomer(t *testing.T, ts *TestServer, customerData map[string]string) (*models.Customer, string) {
+func CreateTestCustomer(t *testing.T, ts *TestServer, customerData models.Customer) (*models.Customer, string) {
 
+	token, err := auth.GenerateToken(customerData.ID, customerData.Email)
+	if err != nil {
+		t.Fatal(err)
+	}
 	jsonData, _ := json.Marshal(customerData)
 	req, _ := http.NewRequest("POST", ts.Server.URL+"/api/customers", bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
 
-	if err := godotenv.Load(".env.test"); err != nil {
-		log.Println("No .env file found")
-	}
-
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", os.Getenv("TEST_ACCESS_TOKEN")))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	assert.NoError(t, err)
@@ -114,7 +124,7 @@ func CreateTestCustomer(t *testing.T, ts *TestServer, customerData map[string]st
 	assert.NoError(t, err)
 
 	customer := response["customer"].(map[string]interface{})
-	token := response["token"].(string)
+	token = response["token"].(string)
 
 	return &models.Customer{
 		ID:    uuid.MustParse(customer["id"].(string)),
@@ -163,7 +173,11 @@ func CreateTestProduct(t *testing.T, ts *TestServer, categoryID uuid.UUID) *mode
 		"image_url":   "https://example.com/image.jpg",
 	}
 
-	jsonData, _ := json.Marshal(productData)
+	jsonData, err := json.Marshal(productData)
+	if err != nil {
+		t.Fatalf("Failed to marshal product data: %v", err)
+	}
+
 	req, _ := http.NewRequest("POST", ts.Server.URL+"/api/products", bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
 
@@ -215,8 +229,6 @@ func CreateTestOrder(t *testing.T, ts *TestServer, customerID uuid.UUID, product
 func MakeRequest(t *testing.T, ts *TestServer, method, path string, body interface{}, headers map[string]string) *http.Response {
 	var jsonData []byte
 	var err error
-
-	// log.Println("[+]Making request:", method, path, headers)
 
 	if body != nil {
 		jsonData, err = json.Marshal(body)

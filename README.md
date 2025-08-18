@@ -1,4 +1,9 @@
-# Commerce Web Service
+[![Deploy to VPS with Minikube](https://github.com/ertush/commerce-app/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/ertush/commerce-app/actions/workflows/ci-cd.yml)
+
+
+# E-Commerce Web Service
+
+![Commerce API Logo](https://img.freepik.com/premium-vector/ecommerce-logo-design_624194-152.jpg?w=200)
 
 A modern e-commerce application built with Go, featuring a REST API, PostgreSQL database, Kubernetes deployment, and OpenID Connect authentication.
 
@@ -38,6 +43,58 @@ A modern e-commerce application built with Go, featuring a REST API, PostgreSQL 
 └─────────────────┘
 ```
 
+
+## 📁 Project Structure
+
+```
+ecommerce-app/
+├── api/
+│   └── rest/
+│       └── router.go          # REST API routes
+├── cmd/
+│   └── server/
+│       └── main.go            # Application entry point
+├── docs/
+│   └── REST_API_DOCS.md       # REST API documentation
+├── internal/
+│   ├── auth/
+│   │   └── auth.go            # JWT authentication
+│   ├── database/
+│   │   ├── database.go        # Database connection
+│   │   ├── migrations.go      # Database migrations
+│   │   └── repository.go      # Data access layer
+│   ├── handlers/
+│   │   ├── customer.go        # Customer handlers
+│   │   ├── product.go         # Product handlers
+│   │   └── order.go           # Order handlers
+│   ├── models/
+│   │   └── models.go          # Data models
+│   └── notifications/
+│       ├── sms.go             # SMS service
+│       └── email.go           # Email service
+├── postman/
+│   └── postman_collection.json # Postman collection
+├── scripts/
+│   ├── deploy-vps.sh          # Deployment script for VPS
+│   └── set-vps.sh             # Set up VPS
+├── tests/
+│   ├── auth_test.go           # Authentication tests
+│   └── customer_test.go       # Customer tests
+├── deployments/
+│   ├── namespace.yaml         # Kubernetes namespace
+│   ├── postgres-configmap.yaml # PostgreSQL config
+│   ├── postgres-deployment.yaml # PostgreSQL deployment
+│   └── app-deployment.yaml    # Application deployment
+├── .github/
+│   └── workflows/
+│       └── ci-cd.yml          # CI/CD pipeline
+├── Dockerfile                 # Docker configuration
+├── docker-compose.yml         # Local development
+├── deploy.sh                  # Deployment script
+├── run.sh                     # Local run script
+└── README.md                  # Documentation
+```
+
 ## Authentication
 
 The application supports two authentication methods:
@@ -60,7 +117,7 @@ The application supports two authentication methods:
 - Docker
 - minikube
 - kubectl
-- OIDC Provider (Google, Azure AD, Auth0, or Keycloak)
+- OIDC Provider (Hydra)
 
 ## Quick Start
 
@@ -77,7 +134,6 @@ Create a `.env` file in the root directory (refer to `.env.example`)
 
 ### 3. Configure OIDC Provider
 
-See [OIDC Setup Guide](examples/oidc-setup.md) for detailed instructions on configuring:
 - Google OAuth 2.0
 - Microsoft Azure AD
 - Auth0
@@ -102,9 +158,6 @@ The application will be available at `http://localhost:8181`
 # Test OIDC login
 curl http://localhost:8181/api/auth/login
 
-# Test protected endpoint (after authentication)
-curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-     http://localhost:8181/api/auth/userinfo
 ```
 
 ### 6. Deploy to minikube

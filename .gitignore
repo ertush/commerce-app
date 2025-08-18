@@ -99,8 +99,6 @@ node_modules/
 tmp/
 temp/
 
-# Docs and todo list
-docs/IMPLEMENTATION_PLAN.md
 
 # scripts
 run.sh

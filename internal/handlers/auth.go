@@ -113,7 +113,7 @@ func (h *AuthHandler) Callback(w http.ResponseWriter, r *http.Request) {
 	var token *oauth2.Token
 
 	if auth.UsePKCE() {
-		log.Println("[+] Using PKCE")
+
 		verifier, err := auth.GetPKCECookie(r)
 		if err != nil {
 			http.Error(w, "Missing PKCE verifier", http.StatusBadRequest)
@@ -125,7 +125,7 @@ func (h *AuthHandler) Callback(w http.ResponseWriter, r *http.Request) {
 			oauth2.SetAuthURLParam("code_verifier", verifier),
 		)
 	} else {
-		log.Println("[+] Exchanging code without PKCE")
+
 		token, err = h.oidcProvider.ExchangeCode(ctx, code)
 	}
 	if err != nil {
@@ -138,8 +138,6 @@ func (h *AuthHandler) Callback(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Missing id_token in token response", http.StatusInternalServerError)
 		return
 	}
-
-	// log.Printf("token: %v\ncode: %v\nrawIDToken: %v", token, code, rawIDToken)
 
 	// Verify ID token
 	claims, err := h.oidcProvider.VerifyIDToken(ctx, rawIDToken)
@@ -189,8 +187,6 @@ func (h *AuthHandler) Callback(w http.ResponseWriter, r *http.Request) {
 func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	// Extract user info from context (set by middleware)
 	_, email, authType := auth.GetUserFromContext(r.Context())
-
-	// log.Printf("[+] Logout request - userID: %s, email: %s, authType: %s", userID, email, authType)
 
 	// Clear OIDC-related cookies (if they exist)
 	auth.ClearStateCookie(w, h.oidcProvider.GetStateCookieName())

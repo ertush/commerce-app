@@ -78,13 +78,13 @@ DB_NAME=ecommerce
 
 # Application Configuration
 PORT=8080
-ENVIRONMENT=production
+ENVIRONMENT=staging
 
 # OIDC Configuration (update with your values)
 OIDC_PROVIDER_URL=https://accounts.google.com
 OIDC_CLIENT_ID=your-google-client-id
 OIDC_CLIENT_SECRET=your-google-client-secret
-OIDC_REDIRECT_URL=http://$(curl -s ifconfig.me):30080/api/auth/callback
+OIDC_REDIRECT_URL=http://$(curl -s ifconfig.me):8080/api/auth/callback
 EOF
 
 echo "🔑 Generated environment file with random database password"

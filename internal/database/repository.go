@@ -300,8 +300,6 @@ func (r *OrderRepository) Create(order *models.Order) error {
 		return err
 	}
 
-	defer tx.Rollback()
-
 	// Insert order
 	query := `INSERT INTO orders (id, customer_id, status, total, created_at, updated_at)
 			  VALUES ($1, $2, $3, $4, $5, $6)`

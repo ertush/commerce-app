@@ -28,6 +28,10 @@ WORKDIR /root/
 # Copy the binary from builder stage
 COPY --from=builder /app/main .
 
+RUN mkdir -p ./docs
+
+COPY  docs/REST_API_DOCS.md ./docs/
+
 # Expose port
 EXPOSE 8080
 

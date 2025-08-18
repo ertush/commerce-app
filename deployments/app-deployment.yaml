@@ -1,3 +1,24 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ecommerce-app-secrets
+  namespace: ecommerce-app
+type: Opaque
+data:
+  OIDC_PROVIDER_URL: aHR0cHM6Ly9lcGljLWRpamtzdHJhLWhwemI4d2ZhcHIucHJvamVjdHMub3J5YXBpcy5jb20=
+  OIDC_CLIENT_ID: OWMxNTVlYmMtZjY0YS00YjdkLWE4OTYtYzRmNTg0ODcwYWVj
+  OIDC_CLIENT_SECRET: X3k4Z2ZOZXNrMVo2UXBsV05uM2JXTkI3c2g=
+  OIDC_REDIRECT_URL: aHR0cHM6Ly9lY29tbWVyY2UtYXBwLmVyaWMtbXV0dWEuc2l0ZS9hcGkvYXV0aC9jYWxsYmFjaw==
+  AFRICASTALKING_USERNAME: c2FuZGJveA==
+  AFRICASTALKING_API_KEY: YXRza185OGEyNDdlNTAyNTQ0MmFjMjU5NzU3ZGU1MGVlYWY1OWIzYjlhMTQ2YmIxMDcxZjdiZGU3NzQzNjM0ODcxYWI2ODQxNjRiNTM=
+  AFRICASTALKING_RECIPIENT: KzI1NDcwNzY0OTMxMQ==
+  AFRICASTALKING_SENDER_ID: QVRFQ09NWTIwMjU=
+  SMTP_HOST: c210cC5nbWFpbC5jb20=
+  SMTP_PORT: NTg3
+  SMTP_USERNAME: ZXJvdHVzaDc3QGdtYWlsLmNvbQ==
+  SMTP_PASSWORD: eXJqZiBqanRkIHBkY2Mgc252Yg==
+  ADMIN_EMAIL: aW5mb0BlcmljLW11dHVhLnNpdGU=
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -51,13 +72,72 @@ spec:
                   key: POSTGRES_DB
             # Add OIDC configuration (you'll need to set these)
             - name: OIDC_PROVIDER_URL
-              value: "https://accounts.google.com"
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-app-secrets
+                  key: OIDC_PROVIDER_URL
             - name: OIDC_CLIENT_ID
-              value: "your-client-id"
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-app-secrets
+                  key: OIDC_CLIENT_ID
             - name: OIDC_CLIENT_SECRET
-              value: "your-client-secret"
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-app-secrets
+                  key: OIDC_CLIENT_SECRET
             - name: OIDC_REDIRECT_URL
-              value: "http://localhost:8080/api/auth/callback"
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-app-secrets
+                  key: OIDC_REDIRECT_URL
+            # Africa's Talking Environment Variables
+            - name: AFRICASTALKING_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-app-secrets
+                  key: AFRICASTALKING_API_KEY
+            - name: AFRICASTALKING_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-app-secrets
+                  key: AFRICASTALKING_USERNAME
+            - name: AFRICASTALKING_SENDER_ID
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-app-secrets
+                  key: AFRICASTALKING_SENDER_ID
+            - name: AFRICASTALKING_RECIPIENT
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-app-secrets
+                  key: AFRICASTALKING_RECIPIENT
+            # SMTP Environment Variables
+            - name: SMTP_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-app-secrets
+                  key: SMTP_HOST
+            - name: SMTP_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-app-secrets
+                  key: SMTP_PORT
+            - name: SMTP_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-app-secrets
+                  key: SMTP_USERNAME
+            - name: SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-app-secrets
+                  key: SMTP_PASSWORD
+            - name: ADMIN_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-app-secrets
+                  key: ADMIN_EMAIL
           readinessProbe:
             httpGet:
               path: /health

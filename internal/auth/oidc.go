@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"slices"
@@ -126,8 +125,6 @@ func NewOIDCProvider(config *OIDCConfig) (*OIDCProvider, error) {
 
 	verifier := provider.Verifier(oidcConfig)
 
-	log.Println("[+] scopes:", config.Scopes)
-
 	oauth2Config := &oauth2.Config{
 		ClientID:     config.ClientID,
 		ClientSecret: config.ClientSecret,
@@ -174,7 +171,7 @@ func (p *OIDCProvider) VerifyIDToken(ctx context.Context, idToken string) (*OIDC
 
 	var claims OIDCClaims
 	if err := token.Claims(&claims); err != nil {
-		// log.Printf("\n\n[+] Claims: %v \n\n", claims)
+
 		return nil, fmt.Errorf("failed to parse token claims: %w", err)
 	}
 
@@ -229,7 +226,7 @@ func (p *OIDCProvider) GetStateCookieName() string {
 
 // SetStateCookie sets the state cookie for CSRF protection
 func SetStateCookie(w http.ResponseWriter, state string, cookieName string) {
-	// log.Printf("[+]state: %s\n[+]cookieName: %s\n[+]isCookieSecure: %t\n", state, cookieName, isCookieSecure())
+
 	http.SetCookie(w, &http.Cookie{
 		Name:     cookieName,
 		Value:    state,
@@ -244,7 +241,7 @@ func SetStateCookie(w http.ResponseWriter, state string, cookieName string) {
 // GetStateCookie retrieves the state cookie
 func GetStateCookie(r *http.Request, cookieName string) (string, error) {
 	cookie, err := r.Cookie(cookieName)
-	log.Println("[+]Cookie", cookie)
+
 	if err != nil {
 		return "", fmt.Errorf("state cookie not found: %w", err)
 	}

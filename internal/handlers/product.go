@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"commerce-app/internal/database"
@@ -43,7 +44,7 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	product := models.Product{
-		ID:          uuid.New(),
+		ID:          productRequest.ID,
 		Name:        productRequest.Name,
 		Description: productRequest.Description,
 		Price:       productRequest.Price,
@@ -69,6 +70,7 @@ func (h *ProductHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 
 	product, err := h.productRepo.GetByID(id)
 	if err != nil {
+		log.Println("Error getting product:", err)
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
