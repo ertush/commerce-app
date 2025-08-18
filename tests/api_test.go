@@ -751,47 +751,47 @@ func TestOrderRoutes(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("UpdateOrderStatusInvalid", func(t *testing.T) {
+	// t.Run("UpdateOrderStatusInvalid", func(t *testing.T) {
 
-		var categoryRepo *database.CategoryRepository
-		categoryRepo = &database.CategoryRepository{}
+	var categoryRepo *database.CategoryRepository
+	categoryRepo = &database.CategoryRepository{}
 
-		var productRepo *database.ProductRepository
-		productRepo = &database.ProductRepository{}
+	var productRepo *database.ProductRepository
+	productRepo = &database.ProductRepository{}
 
-		var customerRepo *database.CustomerRepository
-		customerRepo = &database.CustomerRepository{}
+	var customerRepo *database.CustomerRepository
+	customerRepo = &database.CustomerRepository{}
 
-		var orderRepo *database.OrderRepository
-		orderRepo = &database.OrderRepository{}
+	var orderRepo *database.OrderRepository
+	orderRepo = &database.OrderRepository{}
 
-		customer, _ := ts.GetTestCustomer(t)
-		category := CreateTestCategory(t, ts, nil)
-		product := CreateTestProduct(t, ts, category.ID)
-		order := CreateTestOrder(t, ts, customer.ID, product.ID)
+	customer, _ := ts.GetTestCustomer(t)
+	category := CreateTestCategory(t, ts, nil)
+	product := CreateTestProduct(t, ts, category.ID)
+	order := CreateTestOrder(t, ts, customer.ID, product.ID)
 
-		statusData := map[string]interface{}{
-			"status": "invalid_status",
-		}
+	statusData := map[string]interface{}{
+		"status": "invalid_status",
+	}
 
-		resp := MakeRequest(t, ts, "PUT", "/api/orders/"+order.ID.String()+"/status", statusData, nil)
-		defer resp.Body.Close()
+	resp := MakeRequest(t, ts, "PUT", "/api/orders/"+order.ID.String()+"/status", statusData, nil)
+	defer resp.Body.Close()
 
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
-		//cleanup
-		err := orderRepo.Delete(order.ID)
-		assert.NoError(t, err)
+	//cleanup
+	err := orderRepo.Delete(order.ID)
+	assert.NoError(t, err)
 
-		err = productRepo.Delete(product.ID)
-		assert.NoError(t, err)
+	err = productRepo.Delete(product.ID)
+	assert.NoError(t, err)
 
-		err = categoryRepo.Delete(category.ID, 0)
-		assert.NoError(t, err)
+	err = categoryRepo.Delete(category.ID, 0)
+	assert.NoError(t, err)
 
-		err = customerRepo.Delete(customer.ID)
-		assert.NoError(t, err)
-	})
+	err = customerRepo.Delete(customer.ID)
+	assert.NoError(t, err)
+	// })
 }
 
 // TestHealthCheck tests the health check endpoint
