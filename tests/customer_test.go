@@ -35,7 +35,7 @@ func TestCustomerRepository_Create(t *testing.T) {
 }
 
 func TestCustomerRepository_GetByID(t *testing.T) {
-	ts := SetupTestServer(t)
+	// ts := SetupTestServer(t)
 
 	// Initialize test database
 	err := database.InitDB()
