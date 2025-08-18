@@ -1,5 +1,8 @@
-[![CI/CD](https://github.com/ertush/commerce-app/actions/workflows/ci-cd.yml/badge.svg?branch=dev)](https://github.com/ertush/commerce-app/actions/workflows/ci-cd.yml)
+[![CI/CD staging](https://github.com/ertush/commerce-app/actions/workflows/deploy-vps.yml/badge.svg?branch=dev)](https://github.com/ertush/commerce-app/actions/workflows/deploy-vps.yml)
 
+[![CI/CD production](https://github.com/ertush/commerce-app/actions/workflows/deploy-vps.yml/badge.svg?branch=master)](https://github.com/ertush/commerce-app/actions/workflows/deploy-vps.yml)
+
+[![Test](https://github.com/ertush/commerce-app/actions/workflows/deploy-vps.yml/badge.svg?branch=dev)](https://github.com/ertush/commerce-app/actions/workflows/deploy-vps.yml)
 
 # E-Commerce Web Service
 
