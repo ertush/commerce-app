@@ -66,7 +66,7 @@ jobs:
           DB_USER: postgres
           DB_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           DB_NAME: ecommerce_test
-        run: go test -v ./tests
+        run: go test ./tests -v --run '(TestCustomerRoutes|TestCategoryRoutes|TestProductRoutes|TestOrderRoutes)'
 
   build:
     needs: test

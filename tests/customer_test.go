@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCustomerRepository_Create(t *testing.T) {
+func TestCustomerRepositoryCreate(t *testing.T) {
 
 	// Initialize test database
 	err := database.InitDB()
@@ -40,7 +40,7 @@ func TestCustomerRepository_Create(t *testing.T) {
 	repo.Delete(customer.ID)
 }
 
-func TestCustomerRepository_GetByID(t *testing.T) {
+func TestCustomerRepositoryGetByID(t *testing.T) {
 
 	// Initialize test database
 	err := database.InitDB()
@@ -75,7 +75,7 @@ func TestCustomerRepository_GetByID(t *testing.T) {
 	repo.Delete(customer.ID)
 }
 
-func TestCustomerRepository_GetByEmail(t *testing.T) {
+func TestCustomerRepositoryGetByEmail(t *testing.T) {
 
 	// Initialize test database
 	err := database.InitDB()
@@ -110,7 +110,7 @@ func TestCustomerRepository_GetByEmail(t *testing.T) {
 	repo.Delete(customer.ID)
 }
 
-func TestCustomerRepository_Delete(t *testing.T) {
+func TestCustomerRepositoryDelete(t *testing.T) {
 
 	// Initialize test database
 	err := database.InitDB()
