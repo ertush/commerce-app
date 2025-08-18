@@ -11,7 +11,6 @@ import (
 )
 
 func TestCustomerRepository_Create(t *testing.T) {
-	ts := SetupTestServer(t)
 
 	// Initialize test database
 	err := database.InitDB()
@@ -25,17 +24,23 @@ func TestCustomerRepository_Create(t *testing.T) {
 	repo := &database.CustomerRepository{}
 
 	// Test creating a customer
-	customer, _ := ts.GetTestCustomer(t)
+	customer := &models.Customer{
+		Email: "test@example.com",
+		Name:  "Test User",
+		Phone: "1234567890",
+	}
 
 	err = repo.Create(customer)
 	assert.NoError(t, err)
 	assert.NotEqual(t, uuid.Nil, customer.ID)
 	assert.NotZero(t, customer.CreatedAt)
 	assert.NotZero(t, customer.UpdatedAt)
+
+	//clean up
+	repo.Delete(customer.ID)
 }
 
 func TestCustomerRepository_GetByID(t *testing.T) {
-	// ts := SetupTestServer(t)
 
 	// Initialize test database
 	err := database.InitDB()
@@ -50,9 +55,9 @@ func TestCustomerRepository_GetByID(t *testing.T) {
 
 	// Create a customer first
 	customer := &models.Customer{
-		Email: "test2@example.com",
-		Name:  "Test User 2",
-		Phone: "1234567891",
+		Email: "test@example.com",
+		Name:  "Test User",
+		Phone: "1234567890",
 	}
 
 	err = repo.Create(customer)
@@ -65,10 +70,12 @@ func TestCustomerRepository_GetByID(t *testing.T) {
 	assert.Equal(t, customer.Email, retrievedCustomer.Email)
 	assert.Equal(t, customer.Name, retrievedCustomer.Name)
 	assert.Equal(t, customer.Phone, retrievedCustomer.Phone)
+
+	//clean up
+	repo.Delete(customer.ID)
 }
 
 func TestCustomerRepository_GetByEmail(t *testing.T) {
-	ts := SetupTestServer(t)
 
 	// Initialize test database
 	err := database.InitDB()
@@ -82,7 +89,11 @@ func TestCustomerRepository_GetByEmail(t *testing.T) {
 	repo := &database.CustomerRepository{}
 
 	// Create a customer first
-	customer, _ := ts.GetTestCustomer(t)
+	customer := &models.Customer{
+		Email: "test@example.com",
+		Name:  "Test User",
+		Phone: "1234567890",
+	}
 
 	err = repo.Create(customer)
 	assert.NoError(t, err)
@@ -94,4 +105,43 @@ func TestCustomerRepository_GetByEmail(t *testing.T) {
 	assert.Equal(t, customer.Email, retrievedCustomer.Email)
 	assert.Equal(t, customer.Name, retrievedCustomer.Name)
 	assert.Equal(t, customer.Phone, retrievedCustomer.Phone)
+
+	//clean up
+	repo.Delete(customer.ID)
+}
+
+func TestCustomerRepository_Delete(t *testing.T) {
+
+	// Initialize test database
+	err := database.InitDB()
+	assert.NoError(t, err)
+	defer database.CloseDB()
+
+	// Run migrations
+	err = database.RunMigrations()
+	assert.NoError(t, err)
+
+	repo := &database.CustomerRepository{}
+
+	// Create a customer first
+	customer := &models.Customer{
+		Email: "test@example.com",
+		Name:  "Test User",
+		Phone: "1234567890",
+	}
+
+	err = repo.Create(customer)
+	assert.NoError(t, err)
+
+	// Test deleting the customer
+	err = repo.Delete(customer.ID)
+	assert.NoError(t, err)
+
+	// Test getting the customer by ID after deletion
+	retrievedCustomer, err := repo.GetByID(customer.ID)
+	assert.Error(t, err)
+	assert.Nil(t, retrievedCustomer)
+
+	//clean up
+	repo.Delete(customer.ID)
 }
