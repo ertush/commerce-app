@@ -53,9 +53,15 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if orderRequest.CustomerID == uuid.Nil {
+		http.Error(w, "Invalid customer ID", http.StatusBadRequest)
+		return
+	}
+
 	// Get customer
 	customer, err := h.customerRepo.GetByID(orderRequest.CustomerID)
 	if err != nil {
+		log.Printf("Error getting customer: %v", err)
 		http.Error(w, "Customer not found", http.StatusNotFound)
 		return
 	}
@@ -72,8 +78,20 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	// Process items and calculate total
 	var itemDetails []string
 	for _, item := range orderRequest.Items {
+
+		if item.ProductID == uuid.Nil {
+			http.Error(w, "Invalid product ID", http.StatusBadRequest)
+			return
+		}
+
+		if item.Quantity <= 0 {
+			http.Error(w, "Invalid quantity", http.StatusBadRequest)
+			return
+		}
+
 		product, err := h.productRepo.GetByID(item.ProductID)
 		if err != nil {
+			log.Printf("Error getting product: %v", err)
 			http.Error(w, fmt.Sprintf("Product not found: %s", item.ProductID), http.StatusNotFound)
 			return
 		}
@@ -116,48 +134,56 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 
 	msgOrderID := order.ID.String()[0:8] + "..." + order.ID.String()[len(order.ID.String())-4:]
 
-	// Send SMS notification to customer
-	go func() {
-		// "New Order Placed has been received.Order ID: #%s,\ncustomer name: %s,\nphone: %s,\nemail: %s,\ntotal: $%.2f,\nproduct: %s,\nqty: x%d",
+	currentCustomer, err := h.customerRepo.GetByID(order.CustomerID)
+	if err != nil {
+		log.Printf("Failed to get customer by ID: %v", err)
+	}
 
-		message := fmt.Sprintf(`
-								New order has been Received!
+	if currentCustomer.Name != "Test User" {
+		// Send SMS notification to customer
+		go func() {
+			// "New Order Placed has been received.Order ID: #%s,\ncustomer name: %s,\nphone: %s,\nemail: %s,\ntotal: $%.2f,\nproduct: %s,\nqty: x%d",
 
-								Order Details:
-								- Order ID: %s
-								- Name: %s
-								- Phone: %s
-								- Total Amount: Ksh%.2f
+			message := fmt.Sprintf(`
+									New order has been Received!
 
-								Order Items:
-								%s
-								`,
-			msgOrderID,
-			customer.Name,
-			customer.Phone,
-			order.Total,
-			strings.Join(itemDetails, "\n"))
+									Order Details:
+									- Order ID: %s
+									- Name: %s
+									- Phone: %s
+									- Total Amount: Ksh%.2f
 
-		err := h.smsService.SendOrderNotification(message)
-		if err != nil {
-			fmt.Printf("Failed to send SMS notification: %v\n", err)
-		}
+									Order Items:
+									%s
+									`,
+				msgOrderID,
+				customer.Name,
+				customer.Phone,
+				order.Total,
+				strings.Join(itemDetails, "\n"))
 
-	}()
+			err := h.smsService.SendOrderNotification(message)
+			if err != nil {
+				fmt.Printf("Failed to send SMS notification: %v\n", err)
+			}
 
-	// Send email notification to admin
-	go func() {
-		if err := h.emailService.SendOrderNotificationToAdmin(
-			msgOrderID,
-			customer.Name,
-			customer.Email,
-			customer.Phone,
-			order.Total,
-			itemDetails,
-		); err != nil {
-			fmt.Printf("Failed to send email notification: %v\n", err)
-		}
-	}()
+		}()
+
+		// Send email notification to admin
+		go func() {
+			if err := h.emailService.SendOrderNotificationToAdmin(
+				msgOrderID,
+				customer.Name,
+				customer.Email,
+				customer.Phone,
+				order.Total,
+				itemDetails,
+			); err != nil {
+				fmt.Printf("Failed to send email notification: %v\n", err)
+			}
+		}()
+
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)

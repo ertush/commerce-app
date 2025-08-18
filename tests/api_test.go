@@ -3,7 +3,6 @@ package tests
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"testing"
 
@@ -50,9 +49,7 @@ func TestCustomerRoutes(t *testing.T) {
 			Phone: "",
 		}
 
-		validCustomerData := GetTestUserDetails()
-
-		_, token := CreateTestCustomer(t, ts, validCustomerData)
+		_, token := ts.GetTestCustomer(t)
 
 		headers := map[string]string{
 			"Authorization": fmt.Sprintf("Bearer %s", token),
@@ -67,8 +64,7 @@ func TestCustomerRoutes(t *testing.T) {
 		var customerRepo *database.CustomerRepository
 		customerRepo = &database.CustomerRepository{}
 
-		customerData := GetTestUserDetails()
-		customer, token := CreateTestCustomer(t, ts, customerData)
+		customer, token := ts.GetTestCustomer(t)
 
 		headers := map[string]string{
 			"Authorization": fmt.Sprintf("Bearer %s", token),
@@ -96,9 +92,7 @@ func TestCustomerRoutes(t *testing.T) {
 	t.Run("GetCustomerNotFound", func(t *testing.T) {
 		randomID := uuid.New()
 
-		validCustomerData := GetTestUserDetails()
-
-		_, token := CreateTestCustomer(t, ts, validCustomerData)
+		_, token := ts.GetTestCustomer(t)
 
 		headers := map[string]string{
 			"Authorization": fmt.Sprintf("Bearer %s", token),
@@ -325,44 +319,35 @@ func TestProductRoutes(t *testing.T) {
 	})
 
 	t.Run("GetProduct", func(t *testing.T) {
-		// var categoryRepo *database.CategoryRepository
-		// categoryRepo = &database.CategoryRepository{}
+		var categoryRepo *database.CategoryRepository
+		categoryRepo = &database.CategoryRepository{}
 
-		// var productRepo *database.ProductRepository
-		// productRepo = &database.ProductRepository{}
+		var productRepo *database.ProductRepository
+		productRepo = &database.ProductRepository{}
 
 		category := CreateTestCategory(t, ts, nil)
 		product := CreateTestProduct(t, ts, category.ID)
 
-		productJson, err := json.Marshal(product)
+		resp := MakeRequest(t, ts, "GET", "/api/products/"+product.ID.String(), nil, nil)
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var retrievedProduct models.Product
+		err := json.NewDecoder(resp.Body).Decode(&retrievedProduct)
 		assert.NoError(t, err)
 
-		log.Println(string(productJson))
+		assert.Equal(t, product.ID, retrievedProduct.ID)
+		assert.Equal(t, product.Name, retrievedProduct.Name)
+		assert.Equal(t, product.Price, retrievedProduct.Price)
 
-		// log.Printf("Product ID: %v\n Category ID: %v", product.ID.String(), category.ID.String())
+		// clean up created product
+		err = productRepo.Delete(product.ID)
+		assert.NoError(t, err)
 
-		// resp := MakeRequest(t, ts, "GET", "/api/products/"+product.ID.String(), nil, nil)
-		// defer resp.Body.Close()
-
-		// assert.Equal(t, http.StatusOK, resp.StatusCode)
-
-		assert.Equal(t, 1, 1)
-
-		// var retrievedProduct models.Product
-		// err := json.NewDecoder(resp.Body).Decode(&retrievedProduct)
-		// assert.NoError(t, err)
-
-		// assert.Equal(t, product.ID, retrievedProduct.ID)
-		// assert.Equal(t, product.Name, retrievedProduct.Name)
-		// assert.Equal(t, product.Price, retrievedProduct.Price)
-
-		//clean up created product
-		// err = productRepo.Delete(product.ID)
-		// assert.NoError(t, err)
-
-		//clean up created category
-		// err = categoryRepo.Delete(category.ID, 0)
-		// assert.NoError(t, err)
+		// clean up created category
+		err = categoryRepo.Delete(category.ID, 0)
+		assert.NoError(t, err)
 	})
 
 	t.Run("GetProductsByCategory", func(t *testing.T) {
@@ -450,8 +435,7 @@ func TestOrderRoutes(t *testing.T) {
 		var customerRepo *database.CustomerRepository
 		customerRepo = &database.CustomerRepository{}
 
-		customerData := GetTestUserDetails()
-		customer, _ := CreateTestCustomer(t, ts, customerData)
+		customer, _ := ts.GetTestCustomer(t)
 		category := CreateTestCategory(t, ts, nil)
 		product := CreateTestProduct(t, ts, category.ID)
 
@@ -496,15 +480,12 @@ func TestOrderRoutes(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("CreateOrderInvalidCustomer", func(t *testing.T) {
+	t.Run("CreateOrderInvalidCustomerID", func(t *testing.T) {
 		var categoryRepo *database.CategoryRepository
 		categoryRepo = &database.CategoryRepository{}
 
 		var productRepo *database.ProductRepository
 		productRepo = &database.ProductRepository{}
-
-		var orderRepo *database.OrderRepository
-		orderRepo = &database.OrderRepository{}
 
 		category := CreateTestCategory(t, ts, nil)
 		product := CreateTestProduct(t, ts, category.ID)
@@ -522,34 +503,83 @@ func TestOrderRoutes(t *testing.T) {
 		resp := MakeRequest(t, ts, "POST", "/api/orders", orderData, nil)
 		defer resp.Body.Close()
 
-		var order models.Order
-		err := json.NewDecoder(resp.Body).Decode(&order)
-		assert.NoError(t, err)
-
 		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
 
 		//clean up category
-		err = categoryRepo.Delete(category.ID, 0)
+		err := categoryRepo.Delete(category.ID, 0)
 		assert.NoError(t, err)
 
 		//clean up product
 		err = productRepo.Delete(product.ID)
 		assert.NoError(t, err)
 
-		//clean up order
-		err = orderRepo.Delete(order.ID)
-		assert.NoError(t, err)
 	})
 
-	t.Run("CreateOrderInvalidProduct", func(t *testing.T) {
+	t.Run("CreateOrderMissingCustomerID", func(t *testing.T) {
+		var categoryRepo *database.CategoryRepository
+		categoryRepo = &database.CategoryRepository{}
+
+		var productRepo *database.ProductRepository
+		productRepo = &database.ProductRepository{}
+
+		category := CreateTestCategory(t, ts, nil)
+		product := CreateTestProduct(t, ts, category.ID)
+
+		orderData := map[string]interface{}{
+			"items": []map[string]interface{}{
+				{
+					"product_id": product.ID.String(),
+					"quantity":   2,
+				},
+			},
+		}
+
+		resp := MakeRequest(t, ts, "POST", "/api/orders", orderData, nil)
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+		//clean up category
+		err := categoryRepo.Delete(category.ID, 0)
+		assert.NoError(t, err)
+
+		//clean up product
+		err = productRepo.Delete(product.ID)
+		assert.NoError(t, err)
+
+	})
+
+	t.Run("CreateOrderInvalidProductID", func(t *testing.T) {
 		var customerRepo *database.CustomerRepository
 		customerRepo = &database.CustomerRepository{}
 
-		var orderRepo *database.OrderRepository
-		orderRepo = &database.OrderRepository{}
+		customer, _ := ts.GetTestCustomer(t)
 
-		customerData := GetTestUserDetails()
-		customer, _ := CreateTestCustomer(t, ts, customerData)
+		orderData := map[string]interface{}{
+			"customer_id": customer.ID.String(),
+			"items": []map[string]interface{}{
+				{
+					"product_id": uuid.New().String(),
+					"quantity":   2,
+				},
+			},
+		}
+
+		resp := MakeRequest(t, ts, "POST", "/api/orders", orderData, nil)
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+
+		//clean up customer
+		err := customerRepo.Delete(customer.ID)
+		assert.NoError(t, err)
+	})
+
+	t.Run("CreateOrderMissingProductID", func(t *testing.T) {
+		var customerRepo *database.CustomerRepository
+		customerRepo = &database.CustomerRepository{}
+
+		customer, _ := ts.GetTestCustomer(t)
 
 		orderData := map[string]interface{}{
 			"customer_id": customer.ID.String(),
@@ -563,18 +593,10 @@ func TestOrderRoutes(t *testing.T) {
 		resp := MakeRequest(t, ts, "POST", "/api/orders", orderData, nil)
 		defer resp.Body.Close()
 
-		var order models.Order
-		err := json.NewDecoder(resp.Body).Decode(&order)
-		assert.NoError(t, err)
-
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
-		//clean up order
-		err = orderRepo.Delete(order.ID)
-		assert.NoError(t, err)
-
 		//clean up customer
-		err = customerRepo.Delete(customer.ID)
+		err := customerRepo.Delete(customer.ID)
 		assert.NoError(t, err)
 	})
 
@@ -591,8 +613,7 @@ func TestOrderRoutes(t *testing.T) {
 		var customerRepo *database.CustomerRepository
 		customerRepo = &database.CustomerRepository{}
 
-		customerData := GetTestUserDetails()
-		customer, _ := CreateTestCustomer(t, ts, customerData)
+		customer, _ := ts.GetTestCustomer(t)
 		category := CreateTestCategory(t, ts, nil)
 		product := CreateTestProduct(t, ts, category.ID)
 		order := CreateTestOrder(t, ts, customer.ID, product.ID)
@@ -642,9 +663,7 @@ func TestOrderRoutes(t *testing.T) {
 		var orderRepo *database.OrderRepository
 		orderRepo = &database.OrderRepository{}
 
-		customerData := GetTestUserDetails()
-
-		customer, token := CreateTestCustomer(t, ts, customerData)
+		customer, token := ts.GetTestCustomer(t)
 
 		category := CreateTestCategory(t, ts, nil)
 		product := CreateTestProduct(t, ts, category.ID)
@@ -698,8 +717,7 @@ func TestOrderRoutes(t *testing.T) {
 		var orderRepo *database.OrderRepository
 		orderRepo = &database.OrderRepository{}
 
-		customerData := GetTestUserDetails()
-		customer, _ := CreateTestCustomer(t, ts, customerData)
+		customer, _ := ts.GetTestCustomer(t)
 		category := CreateTestCategory(t, ts, nil)
 		product := CreateTestProduct(t, ts, category.ID)
 		order := CreateTestOrder(t, ts, customer.ID, product.ID)
@@ -747,9 +765,7 @@ func TestOrderRoutes(t *testing.T) {
 		var orderRepo *database.OrderRepository
 		orderRepo = &database.OrderRepository{}
 
-		customerData := GetTestUserDetails()
-
-		customer, _ := CreateTestCustomer(t, ts, customerData)
+		customer, _ := ts.GetTestCustomer(t)
 		category := CreateTestCategory(t, ts, nil)
 		product := CreateTestProduct(t, ts, category.ID)
 		order := CreateTestOrder(t, ts, customer.ID, product.ID)

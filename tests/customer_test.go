@@ -4,13 +4,14 @@ import (
 	"testing"
 
 	"commerce-app/internal/database"
-	"commerce-app/internal/models"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCustomerRepository_Create(t *testing.T) {
+	ts := SetupTestServer(t)
+
 	// Initialize test database
 	err := database.InitDB()
 	assert.NoError(t, err)
@@ -23,11 +24,7 @@ func TestCustomerRepository_Create(t *testing.T) {
 	repo := &database.CustomerRepository{}
 
 	// Test creating a customer
-	customer := &models.Customer{
-		Email: "test@example.com",
-		Name:  "Test User",
-		Phone: "1234567890",
-	}
+	customer, _ := ts.GetTestCustomer(t)
 
 	err = repo.Create(customer)
 	assert.NoError(t, err)
@@ -37,6 +34,8 @@ func TestCustomerRepository_Create(t *testing.T) {
 }
 
 func TestCustomerRepository_GetByID(t *testing.T) {
+	ts := SetupTestServer(t)
+
 	// Initialize test database
 	err := database.InitDB()
 	assert.NoError(t, err)
@@ -49,11 +48,7 @@ func TestCustomerRepository_GetByID(t *testing.T) {
 	repo := &database.CustomerRepository{}
 
 	// Create a customer first
-	customer := &models.Customer{
-		Email: "test2@example.com",
-		Name:  "Test User 2",
-		Phone: "1234567891",
-	}
+	customer, _ := ts.GetTestCustomer(t)
 
 	err = repo.Create(customer)
 	assert.NoError(t, err)
@@ -68,6 +63,8 @@ func TestCustomerRepository_GetByID(t *testing.T) {
 }
 
 func TestCustomerRepository_GetByEmail(t *testing.T) {
+	ts := SetupTestServer(t)
+
 	// Initialize test database
 	err := database.InitDB()
 	assert.NoError(t, err)
@@ -80,11 +77,7 @@ func TestCustomerRepository_GetByEmail(t *testing.T) {
 	repo := &database.CustomerRepository{}
 
 	// Create a customer first
-	customer := &models.Customer{
-		Email: "test3@example.com",
-		Name:  "Test User 3",
-		Phone: "1234567892",
-	}
+	customer, _ := ts.GetTestCustomer(t)
 
 	err = repo.Create(customer)
 	assert.NoError(t, err)
