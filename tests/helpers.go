@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"commerce-app/api/rest"
+	"commerce-app/internal/auth"
 	"commerce-app/internal/database"
 	"commerce-app/internal/models"
 
@@ -78,12 +79,13 @@ func getRandomPhoneNumber() string {
 	return fmt.Sprintf("%d", rand.Intn(9999999999))
 }
 
-func GetTestUserDetails() map[string]string {
+func GetTestUserDetails() models.Customer {
 	// Create test user
-	userDetails := map[string]string{
-		"email": getRandomEmail(),
-		"name":  "Test User",
-		"phone": getRandomPhoneNumber(),
+	userDetails := models.Customer{
+		ID:    uuid.New(),
+		Email: getRandomEmail(),
+		Name:  "Test User",
+		Phone: getRandomPhoneNumber(),
 	}
 
 	return userDetails
@@ -91,8 +93,12 @@ func GetTestUserDetails() map[string]string {
 }
 
 // CreateTestCustomer creates a test customer and returns the customer data
-func CreateTestCustomer(t *testing.T, ts *TestServer, customerData map[string]string) (*models.Customer, string) {
+func CreateTestCustomer(t *testing.T, ts *TestServer, customerData models.Customer) (*models.Customer, string) {
 
+	token, err := auth.GenerateToken(customerData.ID, customerData.Email)
+	if err != nil {
+		t.Fatal(err)
+	}
 	jsonData, _ := json.Marshal(customerData)
 	req, _ := http.NewRequest("POST", ts.Server.URL+"/api/customers", bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
@@ -101,7 +107,7 @@ func CreateTestCustomer(t *testing.T, ts *TestServer, customerData map[string]st
 		log.Println("No .env file found")
 	}
 
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", os.Getenv("TEST_ACCESS_TOKEN")))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	assert.NoError(t, err)
@@ -114,7 +120,7 @@ func CreateTestCustomer(t *testing.T, ts *TestServer, customerData map[string]st
 	assert.NoError(t, err)
 
 	customer := response["customer"].(map[string]interface{})
-	token := response["token"].(string)
+	token = response["token"].(string)
 
 	return &models.Customer{
 		ID:    uuid.MustParse(customer["id"].(string)),
