@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"commerce-app/internal/database"
+	"commerce-app/internal/models"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -48,7 +49,11 @@ func TestCustomerRepository_GetByID(t *testing.T) {
 	repo := &database.CustomerRepository{}
 
 	// Create a customer first
-	customer, _ := ts.GetTestCustomer(t)
+	customer := &models.Customer{
+		Email: "test2@example.com",
+		Name:  "Test User 2",
+		Phone: "1234567891",
+	}
 
 	err = repo.Create(customer)
 	assert.NoError(t, err)
