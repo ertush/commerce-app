@@ -89,7 +89,6 @@ jobs:
   build:
     needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/dev'
 
     steps:
       - uses: actions/checkout@v4

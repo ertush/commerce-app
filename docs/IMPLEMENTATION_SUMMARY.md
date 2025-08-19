@@ -98,7 +98,7 @@ This is a complete e-commerce application built with Go, featuring a REST API, P
 ## 📁 Project Structure
 
 ```
-ecommerce-app/
+commerce-app/
 ├── api/
 │   └── rest/
 │       └── router.go          # REST API routes
@@ -122,13 +122,19 @@ ecommerce-app/
 │       ├── sms.go             # SMS service
 │       └── email.go           # Email service
 ├── tests/
-│   ├── auth_test.go           # Authentication tests
-│   └── customer_test.go       # Customer tests
+│   ├── api_test.go           # REST API tests
+│   ├── auth_test.go          # Authentication tests
+│   ├── helpers.go            # Util test functions migrations
+│   └── oidc_test.go          # OIDC Authentication tests
 ├── deployments/
 │   ├── namespace.yaml         # Kubernetes namespace
 │   ├── postgres-configmap.yaml # PostgreSQL config
 │   ├── postgres-deployment.yaml # PostgreSQL deployment
 │   └── app-deployment.yaml    # Application deployment
+├── scripts/
+│   └── deploy-vps.sh         # Deployment script
+├── postman/
+│   └── commerce-api.postman_collection.json     # Postman collection for API testing
 ├── .github/
 │   └── workflows/
 │       └── ci-cd.yml          # CI/CD pipeline
@@ -287,4 +293,4 @@ go test -v ./tests/auth_test.go
 
 ## 📞 Support
 
-For questions and support, please refer to the README.md file or open an issue on GitHub.
+For questions and support, please refer to the README.md file on GitHub.

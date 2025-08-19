@@ -1,4 +1,4 @@
-[![Deploy to VPS with Minikube](https://github.com/ertush/commerce-app/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/ertush/commerce-app/actions/workflows/ci-cd.yml)
+[![CI/CD](https://github.com/ertush/commerce-app/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/ertush/commerce-app/actions/workflows/ci-cd.yml)
 
 
 # E-Commerce Web Service
@@ -47,15 +47,13 @@ A modern e-commerce application built with Go, featuring a REST API, PostgreSQL 
 ## 📁 Project Structure
 
 ```
-ecommerce-app/
+commerce-app/
 ├── api/
 │   └── rest/
 │       └── router.go          # REST API routes
 ├── cmd/
 │   └── server/
 │       └── main.go            # Application entry point
-├── docs/
-│   └── REST_API_DOCS.md       # REST API documentation
 ├── internal/
 │   ├── auth/
 │   │   └── auth.go            # JWT authentication
@@ -72,19 +70,20 @@ ecommerce-app/
 │   └── notifications/
 │       ├── sms.go             # SMS service
 │       └── email.go           # Email service
-├── postman/
-│   └── postman_collection.json # Postman collection
-├── scripts/
-│   ├── deploy-vps.sh          # Deployment script for VPS
-│   └── set-vps.sh             # Set up VPS
 ├── tests/
-│   ├── auth_test.go           # Authentication tests
-│   └── customer_test.go       # Customer tests
+│   ├── api_test.go           # REST API tests
+│   ├── auth_test.go          # Authentication tests
+│   ├── helpers.go            # Util test functions migrations
+│   └── oidc_test.go          # OIDC Authentication tests
 ├── deployments/
 │   ├── namespace.yaml         # Kubernetes namespace
 │   ├── postgres-configmap.yaml # PostgreSQL config
 │   ├── postgres-deployment.yaml # PostgreSQL deployment
 │   └── app-deployment.yaml    # Application deployment
+├── scripts/
+│   └── deploy-vps.sh         # Deployment script
+├── postman/
+│   └── commerce-api.postman_collection.json     # Postman collection for API testing
 ├── .github/
 │   └── workflows/
 │       └── ci-cd.yml          # CI/CD pipeline
@@ -94,7 +93,6 @@ ecommerce-app/
 ├── run.sh                     # Local run script
 └── README.md                  # Documentation
 ```
-
 ## Authentication
 
 The application supports two authentication methods:
