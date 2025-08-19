@@ -2,7 +2,10 @@ name: Deploy to AWS with Minikube
 
 on:
   pull_request:
-    branches: [master]
+    branches:
+      - master
+    types:
+      - closed
 
 env:
   IMAGE_NAME: ecommerce-app
@@ -101,7 +104,6 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
 
     steps:
       - name: Checkout code
@@ -159,7 +161,7 @@ jobs:
     steps:
       - name: Notify deployment status
         run: |
-          if [ "${{ needs.deploy-staging.result }}" == "success" ] || [ "${{ needs.deploy-production.result }}" == "success" ]; then
+          if [ "${{ needs.deploy.result }}" == "success" ]; then
             echo "✅ Deployment successful!"
           else
             echo "❌ Deployment failed!"

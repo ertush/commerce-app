@@ -7,7 +7,7 @@ set -e
 # Configuration
 IMAGE_NAME=${IMAGE_NAME:-"ecommerce-app"}
 IMAGE_TAG=${IMAGE_TAG:-"latest"}
-ENVIRONMENT=${ENVIRONMENT:-"staging"}
+ENVIRONMENT=${ENVIRONMENT:-"production"}
 NAMESPACE="ecommerce-app-${ENVIRONMENT}"
 VPS_DOMAIN=${VPS_DOMAIN:-""}
 
@@ -286,14 +286,9 @@ setup_environment() {
 
     # Environment-specific configurations
     case $ENVIRONMENT in
+
         "production")
-            # Production settings
-            sed -i 's/replicas: 2/replicas: 3/g' deployments/${ENVIRONMENT}/app-deployment.yaml
-            sed -i 's/memory: "256Mi"/memory: "512Mi"/g' deployments/${ENVIRONMENT}/app-deployment.yaml
-            sed -i 's/cpu: "200m"/cpu: "500m"/g' deployments/${ENVIRONMENT}/app-deployment.yaml
-            ;;
-        "staging")
-            # Staging settings
+            # produnction settings
             sed -i 's/replicas: 2/replicas: 1/g' deployments/${ENVIRONMENT}/app-deployment.yaml
             ;;
     esac
