@@ -2,7 +2,10 @@ name: Deploy to AWS with Minikube
 
 on:
   pull_request:
-    branches: [master]
+    branches:
+      - master
+    types:
+      - closed
 
 env:
   IMAGE_NAME: ecommerce-app
