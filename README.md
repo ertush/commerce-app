@@ -187,6 +187,15 @@ All protected endpoints require a valid JWT token in the Authorization header:
 ```bash
 Authorization: Bearer <your-jwt-token>
 ```
+## Notifications
+
+To receive notifications via Email create an App Password for your Google account and set the SMTP_PASSWORD in the `.env` file using the App Password. To recieve SMS notifications, create an account with Africastalking and set AFRICASTALKING_API_KEY, AFRICASTALKING_USERNAME, AFRICASTALKING_SENDER_ID and AFRICASTALKING_RECIPIENT in the `.env` file.
+
+Please note that you need to create an alphanumeric ID which is the AFRICASTALKING_SENDER_ID variable.
+
+Below is an illustration of the SMS notification:
+
+![SMS Notification](assets/sms-notification.png)
 
 ## Security Features
 
