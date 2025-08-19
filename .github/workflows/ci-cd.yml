@@ -158,7 +158,7 @@ jobs:
     steps:
       - name: Notify deployment status
         run: |
-          if [ "${{ needs.deploy-staging.result }}" == "success" ] || [ "${{ needs.deploy-production.result }}" == "success" ]; then
+          if [ "${{ needs.deploy.result }}" == "success" ]; then
             echo "✅ Deployment successful!"
           else
             echo "❌ Deployment failed!"
