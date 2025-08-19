@@ -1,5 +1,4 @@
-[![CI/CD](https://github.com/ertush/commerce-app/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/ertush/commerce-app/actions/workflows/ci-cd.yml)
-
+[![Deploy to AWS with Minikube](https://github.com/ertush/commerce-app/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/ertush/commerce-app/actions/workflows/ci-cd.yml)
 
 # E-Commerce Web Service
 
@@ -39,7 +38,7 @@ A modern e-commerce application built with Go, featuring a REST API, PostgreSQL 
 │   OIDC          │
 │   Providers     │
 │   (Google,      │
-│   Azure, etc.)  │
+│   AWS, etc.)    │
 └─────────────────┘
 ```
 
