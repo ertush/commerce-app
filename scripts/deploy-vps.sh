@@ -7,7 +7,7 @@ set -e
 # Configuration
 IMAGE_NAME=${IMAGE_NAME:-"ecommerce-app"}
 IMAGE_TAG=${IMAGE_TAG:-"latest"}
-ENVIRONMENT=${ENVIRONMENT:-"staging"}
+ENVIRONMENT=${ENVIRONMENT:-"production"}
 NAMESPACE="ecommerce-app-${ENVIRONMENT}"
 VPS_DOMAIN=${VPS_DOMAIN:-""}
 
